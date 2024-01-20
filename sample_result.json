@@ -1,0 +1,602 @@
+{
+  "a054b170-c403-4fcc-8e6d-6cd63b00a2b2": {
+    "datasets": [
+      {
+        "Financial Services": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_financial_services",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_financial_services",
+          "resources": [
+            {
+              "name": "hotosm_cuw_financial_services_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/financial_services/points/hotosm_cuw_financial_services_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1749,
+              "last_modifed": "2024-01-20T18:36:01.883360",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_financial_services_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/financial_services/points/hotosm_cuw_financial_services_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 946,
+              "last_modifed": "2024-01-20T18:36:02.124807",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Education Facilities": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_education_facilities",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_education_facilities",
+          "resources": [
+            {
+              "name": "hotosm_cuw_education_facilities_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/points/hotosm_cuw_education_facilities_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1788,
+              "last_modifed": "2024-01-20T18:35:55.726855",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_education_facilities_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/points/hotosm_cuw_education_facilities_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 952,
+              "last_modifed": "2024-01-20T18:35:56.298527",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_education_facilities_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/points/hotosm_cuw_education_facilities_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 959,
+              "last_modifed": "2024-01-20T18:35:56.923949",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_education_facilities_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/polygons/hotosm_cuw_education_facilities_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1590,
+              "last_modifed": "2024-01-20T18:36:03.053906",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_education_facilities_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/polygons/hotosm_cuw_education_facilities_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1031,
+              "last_modifed": "2024-01-20T18:36:03.404366",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_education_facilities_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/education_facilities/polygons/hotosm_cuw_education_facilities_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 977,
+              "last_modifed": "2024-01-20T18:36:03.956705",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Roads": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_roads",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_roads",
+          "resources": [
+            {
+              "name": "hotosm_cuw_roads_lines_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/roads/lines/hotosm_cuw_roads_lines_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1403,
+              "last_modifed": "2024-01-20T18:35:55.663452",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_roads_lines_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/roads/lines/hotosm_cuw_roads_lines_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 949,
+              "last_modifed": "2024-01-20T18:35:56.176962",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_roads_lines_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/roads/lines/hotosm_cuw_roads_lines_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 895,
+              "last_modifed": "2024-01-20T18:35:56.635134",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Populated Places": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_populated_places",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_populated_places",
+          "resources": [
+            {
+              "name": "hotosm_cuw_populated_places_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/populated_places/points/hotosm_cuw_populated_places_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1658,
+              "last_modifed": "2024-01-20T18:35:59.942885",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_populated_places_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/populated_places/points/hotosm_cuw_populated_places_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 887,
+              "last_modifed": "2024-01-20T18:36:00.196483",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_populated_places_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/populated_places/points/hotosm_cuw_populated_places_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 894,
+              "last_modifed": "2024-01-20T18:36:00.529017",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Health Facilities": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_health_facilities",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_health_facilities",
+          "resources": [
+            {
+              "name": "hotosm_cuw_health_facilities_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/points/hotosm_cuw_health_facilities_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1811,
+              "last_modifed": "2024-01-20T18:35:55.690070",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_health_facilities_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/points/hotosm_cuw_health_facilities_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 982,
+              "last_modifed": "2024-01-20T18:35:56.230453",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_health_facilities_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/points/hotosm_cuw_health_facilities_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 989,
+              "last_modifed": "2024-01-20T18:35:56.765161",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_health_facilities_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/polygons/hotosm_cuw_health_facilities_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1617,
+              "last_modifed": "2024-01-20T18:36:03.116610",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_health_facilities_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/polygons/hotosm_cuw_health_facilities_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1059,
+              "last_modifed": "2024-01-20T18:36:03.474229",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_health_facilities_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/health_facilities/polygons/hotosm_cuw_health_facilities_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 1005,
+              "last_modifed": "2024-01-20T18:36:03.981355",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Waterways": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_waterways",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_waterways",
+          "resources": [
+            {
+              "name": "hotosm_cuw_waterways_lines_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/lines/hotosm_cuw_waterways_lines_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1476,
+              "last_modifed": "2024-01-20T18:35:55.653625",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_waterways_lines_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/lines/hotosm_cuw_waterways_lines_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 991,
+              "last_modifed": "2024-01-20T18:35:56.147212",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_waterways_lines_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/lines/hotosm_cuw_waterways_lines_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 937,
+              "last_modifed": "2024-01-20T18:35:56.599739",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_waterways_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/polygons/hotosm_cuw_waterways_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1503,
+              "last_modifed": "2024-01-20T18:36:01.882456",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_waterways_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/polygons/hotosm_cuw_waterways_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1000,
+              "last_modifed": "2024-01-20T18:36:02.110175",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_waterways_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/waterways/polygons/hotosm_cuw_waterways_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 946,
+              "last_modifed": "2024-01-20T18:36:02.334171",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Airports": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_airports",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_airports",
+          "resources": [
+            {
+              "name": "hotosm_cuw_airports_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/points/hotosm_cuw_airports_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1707,
+              "last_modifed": "2024-01-20T18:35:55.737708",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/points/hotosm_cuw_airports_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 951,
+              "last_modifed": "2024-01-20T18:35:56.324535",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/points/hotosm_cuw_airports_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 958,
+              "last_modifed": "2024-01-20T18:35:56.909985",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_lines_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/lines/hotosm_cuw_airports_lines_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1505,
+              "last_modifed": "2024-01-20T18:36:02.880637",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_lines_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/lines/hotosm_cuw_airports_lines_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1020,
+              "last_modifed": "2024-01-20T18:36:03.267597",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_lines_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/lines/hotosm_cuw_airports_lines_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 966,
+              "last_modifed": "2024-01-20T18:36:03.635890",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/polygons/hotosm_cuw_airports_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1533,
+              "last_modifed": "2024-01-20T18:36:09.230321",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/polygons/hotosm_cuw_airports_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1030,
+              "last_modifed": "2024-01-20T18:36:09.453242",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_airports_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/airports/polygons/hotosm_cuw_airports_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 976,
+              "last_modifed": "2024-01-20T18:36:09.663364",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Railways": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_railways",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_railways",
+          "resources": [
+            {
+              "name": "hotosm_cuw_railways_lines_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/railways/lines/hotosm_cuw_railways_lines_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1412,
+              "last_modifed": "2024-01-20T18:36:06.513499",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_railways_lines_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/railways/lines/hotosm_cuw_railways_lines_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 951,
+              "last_modifed": "2024-01-20T18:36:06.733091",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_railways_lines_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/railways/lines/hotosm_cuw_railways_lines_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 897,
+              "last_modifed": "2024-01-20T18:36:06.966613",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Points of Interest": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_points_of_interest",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_points_of_interest",
+          "resources": [
+            {
+              "name": "hotosm_cuw_points_of_interest_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/points/hotosm_cuw_points_of_interest_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1811,
+              "last_modifed": "2024-01-20T18:35:55.714218",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_points_of_interest_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/points/hotosm_cuw_points_of_interest_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 965,
+              "last_modifed": "2024-01-20T18:35:56.279452",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_points_of_interest_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/points/hotosm_cuw_points_of_interest_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 972,
+              "last_modifed": "2024-01-20T18:35:56.901559",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_points_of_interest_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/polygons/hotosm_cuw_points_of_interest_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1614,
+              "last_modifed": "2024-01-20T18:36:03.034715",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_points_of_interest_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/polygons/hotosm_cuw_points_of_interest_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 1041,
+              "last_modifed": "2024-01-20T18:36:03.388197",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_points_of_interest_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/points_of_interest/polygons/hotosm_cuw_points_of_interest_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 987,
+              "last_modifed": "2024-01-20T18:36:03.771607",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Sea Ports": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_sea_ports",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_sea_ports",
+          "resources": [
+            {
+              "name": "hotosm_cuw_sea_ports_points_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/points/hotosm_cuw_sea_ports_points_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1654,
+              "last_modifed": "2024-01-20T18:35:55.701131",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_points_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/points/hotosm_cuw_sea_ports_points_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 911,
+              "last_modifed": "2024-01-20T18:35:56.312424",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_points_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/points/hotosm_cuw_sea_ports_points_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 918,
+              "last_modifed": "2024-01-20T18:35:56.910686",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_lines_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/lines/hotosm_cuw_sea_ports_lines_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1447,
+              "last_modifed": "2024-01-20T18:36:03.091741",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_lines_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/lines/hotosm_cuw_sea_ports_lines_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 977,
+              "last_modifed": "2024-01-20T18:36:03.444049",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_lines_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/lines/hotosm_cuw_sea_ports_lines_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 923,
+              "last_modifed": "2024-01-20T18:36:03.964798",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_polygons_shp.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/polygons/hotosm_cuw_sea_ports_polygons_shp.zip",
+              "format": "shp",
+              "description": "ESRI Shapefile",
+              "size": 1476,
+              "last_modifed": "2024-01-20T18:36:09.493807",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/polygons/hotosm_cuw_sea_ports_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 988,
+              "last_modifed": "2024-01-20T18:36:09.707828",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_sea_ports_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/sea_ports/polygons/hotosm_cuw_sea_ports_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 934,
+              "last_modifed": "2024-01-20T18:36:09.928376",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      },
+      {
+        "Buildings": {
+          "hdx_upload": "SUCCESS",
+          "name": "hotosm_cuw_buildings",
+          "hdx_url": "https://demo.data-humdata-org.ahconu.org/dataset/hotosm_cuw_buildings",
+          "resources": [
+            {
+              "name": "hotosm_cuw_buildings_polygons_kml.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/buildings/polygons/hotosm_cuw_buildings_polygons_kml.zip",
+              "format": "kml",
+              "description": "KML",
+              "size": 984,
+              "last_modifed": "2024-01-20T18:35:55.634274",
+              "uploaded_to_hdx": true
+            },
+            {
+              "name": "hotosm_cuw_buildings_polygons_geojson.zip",
+              "url": "https://demo_url/exports-stage.hotosm.org/HDX/CUW/buildings/polygons/hotosm_cuw_buildings_polygons_geojson.zip",
+              "format": "geojson",
+              "description": "GeoJSON",
+              "size": 930,
+              "last_modifed": "2024-01-20T18:35:56.160657",
+              "uploaded_to_hdx": true
+            }
+          ]
+        }
+      }
+    ],
+    "elapsed_time": "31 seconds",
+    "started_at": "2024-01-20T18:35:54.966949"
+  }
+}
