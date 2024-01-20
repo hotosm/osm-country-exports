@@ -178,8 +178,8 @@ The script is designed to trigger extraction requests for country exports using 
 
 - Your export download link will be generated based on the config , with raw-data-api logic it will be ```Base_download_url```/```dataset_folder```/```dataset_prefix```/```Category_name```/```feature_type```/```dataset_prefix_category_name_export_format.zip```
 - Example for Waterways configuration :
-Here Category Name is ```Waterways```, dataset_prefix is ```hotosm_project_9```, dataset_folder is ```TM``` , feature_type is ```lines``` and export format is ```geojson```
-
+Here Category Name is ```Waterways```, dataset_prefix is ```hotosm_cuw```, dataset_folder is ```HDX``` , feature_type is ```lines``` and export format is ```geojson```
+s
 ```json
 "a054b170-c403-4fcc-8e6d-6cd63b00a2b2": {
 "datasets": [
