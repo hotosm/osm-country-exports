@@ -35,30 +35,77 @@ def transform_to_tree_structure(data):
     return tree_structure
 
 
-def convert_to_tree_select_nodes(tree_structure, parent_label=""):
-    nodes = []
+def convert_to_collapsible_lists(tree_structure, data, parent_label=""):
+    lists = []
     for key, value in tree_structure.items():
         label = f"{parent_label}/{key}" if parent_label else key
-        node = {"label": label, "value": label}
+        list_content = []
+
         if isinstance(value, dict):
-            node["children"] = convert_to_tree_select_nodes(value, label)
-        nodes.append(node)
-    return nodes
+            children_lists = convert_to_collapsible_lists(value, data, label)
+            list_content.extend(children_lists)
+
+        total_size, last_modified_date = calculate_selected_size_and_date([label], data)
+        formatted_date = (
+            humanize.naturaldate(last_modified_date) if last_modified_date else "N/A"
+        )
+
+        # Add metadata information for folders
+        list_content.append(f"**Label:** {label}")
+        list_content.append(f"**Total Size:** {humanize.naturalsize(total_size)}")
+        list_content.append(f"**Last Modified Date:** {formatted_date}")
+
+        lists.append({"label": label, "content": list_content})
+
+    return lists
+
+
+def visualize_folder_structure(api_base_url, tree_structure, data):
+    def build_html_recursive(item):
+        html = "<ul>"
+        for entry in item:
+            if isinstance(entry, dict):
+                label = entry["label"]
+                content = entry["content"]
+
+                html += f"<li><details><summary>{label}</summary><ul>"
+                if isinstance(content, list):
+                    html += build_html_recursive(content)
+                html += "</ul></details></li>"
+            else:
+                html += f"<li>{entry}</li>"
+
+        html += "</ul>"
+        return html
+
+    collapsible_lists = convert_to_collapsible_lists(tree_structure, data)
+    for collapsible_list in collapsible_lists:
+        label = collapsible_list["label"]
+        content = collapsible_list["content"]
+
+        html = build_html_recursive(content)
+        st.markdown(
+            f"<details><summary>{label}</summary>{html}</details>",
+            unsafe_allow_html=True,
+        )
 
 
 def calculate_selected_size_and_date(selected_items, data):
     total_size = 0
     last_modified_dates = []
+
     for item in data:
-        if item["Key"] in selected_items:
-            total_size += item.get("Size", 0)
-            last_modified_date_str = item.get("LastModified")
-            if last_modified_date_str:
-                # Convert the date string to a datetime object
-                last_modified_date = datetime.strptime(
-                    last_modified_date_str, "%Y-%m-%dT%H:%M:%SZ"
-                )
-                last_modified_dates.append(last_modified_date)
+        for folder_path in selected_items:
+            if item["Key"].startswith(folder_path + "/"):
+                total_size += item.get("Size", 0)
+                last_modified_date_str = item.get("LastModified")
+                if last_modified_date_str:
+                    # Convert the date string to a datetime object
+                    last_modified_date = datetime.strptime(
+                        last_modified_date_str, "%Y-%m-%dT%H:%M:%SZ"
+                    )
+                    last_modified_dates.append(last_modified_date)
+
     latest_last_modified_date = max(last_modified_dates, default=None)
     return total_size, latest_last_modified_date
 
@@ -131,8 +178,6 @@ def download_file(api_base_url, key):
 
 
 def visualize_data(api_base_url, selected_features):
-    st.sidebar.title("Information")
-
     for feature in selected_features:
         iso3 = feature["properties"].get("iso3")
         dataset_folder = feature["properties"]["dataset"]["dataset_folder"]
@@ -152,54 +197,8 @@ def visualize_data(api_base_url, selected_features):
         if not data:
             st.warning("No data available for visualization.")
             continue
-
         tree_structure = transform_to_tree_structure(data)
-        tree_select_nodes = convert_to_tree_select_nodes(tree_structure)
-
-        st.subheader("Folder Structure:")
-        return_select = tree_select(tree_select_nodes)
-        selected_items = return_select.get("checked", [])
-
-        total_size, last_modified_date = calculate_selected_size_and_date(
-            selected_items, data
-        )
-
-        st.sidebar.subheader("Selected Items Information:")
-        st.sidebar.write(f"**Total Size:** {humanize.naturalsize(total_size)}")
-        st.sidebar.write("**Last Modified Date:**")
-        formatted_date = humanize.naturaldate(last_modified_date)
-        st.sidebar.write(formatted_date)
-
-        # Download button
-        if len(selected_items) == 1:
-            download_key = selected_items[0]
-            if download_key.endswith(".zip"):
-                download_link = download_file(api_base_url, download_key)
-                st.sidebar.markdown(
-                    f'<a href="{download_link}" target="_blank"><button style="font-size: 12px; padding: 4px 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">{download_key}</button></a>',
-                    unsafe_allow_html=True,
-                )
-            if download_key.endswith(".json"):
-                download_link = download_file(api_base_url, download_key)
-                config_response = requests.get(download_link)
-                config_content = config_response.json()
-                st.sidebar.subheader("Config:")
-                st.sidebar.json(config_content)
-
-        elif len(selected_items) > 1:
-            # Warning for multiple files download
-            confirmation = st.sidebar.button(
-                "Download Selected Files",
-                help="You are about to download multiple files. Click to proceed.",
-            )
-            if confirmation:
-                for download_key in selected_items:
-                    if download_key.endswith(".zip"):
-                        download_link = download_file(api_base_url, download_key)
-                        st.sidebar.markdown(
-                            f'<a href="{download_link}" target="_blank"><button style="font-size: 12px; padding: 4px 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">{download_key}</button></a>',
-                            unsafe_allow_html=True,
-                        )
+        visualize_folder_structure(api_base_url, tree_structure, data)
 
         # Fetch and display last run info
         last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}/meta.json")
