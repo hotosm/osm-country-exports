@@ -215,13 +215,13 @@ def main():
     )
 
     available_features = get_available_features(raw_data_api_base_url)
-    selected_feature_indices = st.multiselect(
-        "Select features to fetch:",
+    selected_feature_indices = st.selectbox(
+        "Select countries to fetch:",
         range(len(available_features)),
         format_func=lambda i: f"{available_features[i]['properties']['id']} - {available_features[i]['properties']['dataset']['dataset_title']}",
     )
 
-    selected_features = [available_features[i] for i in selected_feature_indices]
+    selected_features = [available_features[selected_feature_indices]]
 
     visualize_data(raw_data_api_base_url, selected_features)
 
