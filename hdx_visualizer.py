@@ -35,26 +35,23 @@ def transform_to_tree_structure(data):
     return tree_structure
 
 
-def convert_to_collapsible_lists(tree_structure, data, parent_label=""):
+def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_label=""):
     lists = []
     for key, value in tree_structure.items():
         label = f"{parent_label}/{key}" if parent_label else key
         list_content = []
 
-        if isinstance(value, dict):
-            children_lists = convert_to_collapsible_lists(value, data, label)
-            list_content.extend(children_lists)
-
         total_size, last_modified_date = calculate_selected_size_and_date([label], data)
         formatted_date = (
             humanize.naturaldate(last_modified_date) if last_modified_date else "N/A"
         )
-
-        # Add metadata information for folders
-        list_content.append(f"**Label:** {label}")
-        list_content.append(f"**Total Size:** {humanize.naturalsize(total_size)}")
-        list_content.append(f"**Last Modified Date:** {formatted_date}")
-
+        list_content.append(f"Total Size: {humanize.naturalsize(total_size)}")
+        list_content.append(f"Last Modified: {formatted_date}")
+        if isinstance(value, dict):
+            children_lists = convert_to_collapsible_lists(
+                api_base_url, value, data, label
+            )
+            list_content.extend(children_lists)
         lists.append({"label": label, "content": list_content})
 
     return lists
@@ -78,7 +75,7 @@ def visualize_folder_structure(api_base_url, tree_structure, data):
         html += "</ul>"
         return html
 
-    collapsible_lists = convert_to_collapsible_lists(tree_structure, data)
+    collapsible_lists = convert_to_collapsible_lists(api_base_url, tree_structure, data)
     for collapsible_list in collapsible_lists:
         label = collapsible_list["label"]
         content = collapsible_list["content"]
