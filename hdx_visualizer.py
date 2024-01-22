@@ -96,7 +96,7 @@ def calculate_selected_size_and_date(selected_items, data):
 
     for item in data:
         for folder_path in selected_items:
-            if item["Key"].startswith(folder_path + "/"):
+            if item["Key"].startswith(folder_path):
                 total_size += item.get("Size", 0)
                 last_modified_date_str = item.get("LastModified")
                 if last_modified_date_str:
