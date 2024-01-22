@@ -49,6 +49,14 @@ def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_labe
             f"<i><small>Size: {humanize.naturalsize(total_size)}</small></i>"
         )
         list_content.append(f"<i><small>Last Modified: {formatted_date}</small></i>")
+
+        # Add a tiny download button for .zip files
+        if label.endswith(".zip"):
+            download_link = download_file(api_base_url, label)
+            list_content.append(
+                f'<a href="{download_link}" target="_blank"><button style="font-size: 10px; padding: 2px 2px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Download</button></a>'
+            )
+
         if isinstance(value, dict):
             children_lists = convert_to_collapsible_lists(
                 api_base_url, value, data, label
