@@ -51,7 +51,7 @@ def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_labe
         list_content.append(f"<i><small>Last Modified: {formatted_date}</small></i>")
 
         # Add a tiny download button for .zip files
-        if label.endswith(".zip"):
+        if label.endswith(".zip") or label.endswith(".json"):
             download_link = download_file(api_base_url, label)
             list_content.append(
                 f'<a href="{download_link}" target="_blank"><button style="font-size: 10px; padding: 2px 2px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Download</button></a>'
