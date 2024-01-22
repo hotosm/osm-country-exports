@@ -96,7 +96,7 @@ You can run streamlit app to use frontend
 pip install streamlit
 streamlit run streamlit_app.py
 ```
-2. To Use hosted Service :  Go to [tm-extractor.streamlit.app](https://hdx-extractor.streamlit.app/) 
+2. To Use hosted Service :  Go to [hdx-extractor.streamlit.app](https://hdx-extractor.streamlit.app/) 
 
 ## Configuration
 
@@ -178,8 +178,8 @@ The script is designed to trigger extraction requests for country exports using 
 
 - Your export download link will be generated based on the config , with raw-data-api logic it will be ```Base_download_url```/```dataset_folder```/```dataset_prefix```/```Category_name```/```feature_type```/```dataset_prefix_category_name_export_format.zip```
 - Example for Waterways configuration :
-Here Category Name is ```Waterways```, dataset_prefix is ```hotosm_cuw```, dataset_folder is ```HDX``` , feature_type is ```lines``` and export format is ```geojson```
-s
+Here Category Name is ```Financial Services```, dataset_prefix is ```hotosm_cuw```, dataset_folder is ```HDX``` , feature_type is ```points``` and export format is ```kml``` and ```shp``` . This is being reflected as ```hotosm_cuw_financial_services``` dataset in HDX page.
+Each country / export can have multiple datasets divided in to multiple resources. 
 ```json
 "a054b170-c403-4fcc-8e6d-6cd63b00a2b2": {
 "datasets": [
