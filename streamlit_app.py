@@ -117,6 +117,7 @@ def main():
     selected_iso3 = st.multiselect(
         "Select ISO3 options:", iso3_options, format_func=lambda x: f"{x[0]} - {x[1]}"
     )
+
     selected_hdx_ids = st.multiselect(
         "Select HDX ID options:",
         hdx_id_options,
@@ -149,9 +150,12 @@ def main():
             hdx_processor.RAW_DATA_API_BASE_URL = raw_data_api_base_url
             hdx_processor.RAWDATA_API_AUTH_TOKEN = rawdata_api_auth_token
 
+            selected_iso3_values = [iso3 for iso3, _ in selected_iso3]
+            selected_hdx_ids_values = [ids for ids, _ in selected_iso3]
+
             task_ids = hdx_processor.init_call(
-                iso3=selected_iso3,
-                ids=selected_hdx_ids,
+                iso3=selected_iso3_values,
+                ids=selected_hdx_ids_values,
                 fetch_scheduled_exports=frequency,
             )
 
