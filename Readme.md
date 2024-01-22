@@ -96,7 +96,7 @@ You can run streamlit app to use frontend
 pip install streamlit
 streamlit run streamlit_app.py
 ```
-2. To Use hosted Service :  Go to [hdx-visualizer.streamlit.app](https://hdx-visualizer.streamlit.app/) 
+2. To Use hosted Service :  Go to [hdx-extractor.streamlit.app](https://hdx-extractor.streamlit.app/) 
 
 3. Use hosted service for visualization of datasets . Go to [hdx-visualizer.streamlit.app]()
 
