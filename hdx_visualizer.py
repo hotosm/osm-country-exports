@@ -45,8 +45,10 @@ def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_labe
         formatted_date = (
             humanize.naturaldate(last_modified_date) if last_modified_date else "N/A"
         )
-        list_content.append(f"Total Size: {humanize.naturalsize(total_size)}")
-        list_content.append(f"Last Modified: {formatted_date}")
+        list_content.append(
+            f"<i><small>Size: {humanize.naturalsize(total_size)}</small></i>"
+        )
+        list_content.append(f"<i><small>Last Modified: {formatted_date}</small></i>")
         if isinstance(value, dict):
             children_lists = convert_to_collapsible_lists(
                 api_base_url, value, data, label
@@ -65,12 +67,12 @@ def visualize_folder_structure(api_base_url, tree_structure, data):
                 label = entry["label"]
                 content = entry["content"]
 
-                html += f"<li><details><summary>{label}</summary><ul>"
+                html += f"<li><details><summary><b>{label}</b></summary><ul>"
                 if isinstance(content, list):
                     html += build_html_recursive(content)
                 html += "</ul></details></li>"
             else:
-                html += f"<li>{entry}</li>"
+                html += f" {entry}"
 
         html += "</ul>"
         return html
@@ -82,7 +84,7 @@ def visualize_folder_structure(api_base_url, tree_structure, data):
 
         html = build_html_recursive(content)
         st.markdown(
-            f"<details><summary>{label}</summary>{html}</details>",
+            f"<details><summary><b>{label}</b></summary>{html}</details>",
             unsafe_allow_html=True,
         )
 
