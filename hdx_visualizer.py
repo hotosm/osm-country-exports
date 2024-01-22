@@ -4,7 +4,6 @@ from urllib.parse import quote
 import humanize
 import requests
 import streamlit as st
-from streamlit_tree_select import tree_select
 
 
 def fetch_hdx_api(raw_data_api_base_url, skip=0, limit=100):
