@@ -1,10 +1,12 @@
 ## osm2hdx
 
-This repo has two main scripts : 
+This repo has two main scripts :
 The **osm2hdx Extractor** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
 
-The **osm2hdx Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading 
+The **osm2hdx Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading
+
 ## Table of Contents
+
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -26,9 +28,10 @@ The **osm2hdx Visualizer** script is desinged to visualize the exports in tree s
 - Access token for Raw Data API
 
 ### Installation
+
 Make sure you have python3 installed on your system
-    
-- Clone the repository and cd 
+
+- Clone the repository and cd
 
 ```bash
 git clone https://github.com/kshitijrajsharma/osm2hdx
@@ -41,19 +44,22 @@ cd osm2hdx
 
 Head over to [Env](#environment-variables) to verify you have setup correct env variables & Run the script from the command line with the following options:
 
-- For Specific Countries : 
+- For Specific Countries :
+  osm2hdx_extractor
 
 ```bash
 python osm2hdx_extractor.py --iso3 NPL
 ```
 
 - For fetching scheduled exports daily
+  osm2hdx_extractor
 
 ```bash
 python osm2hdx_extractor.py --fetch-scheduled-exports daily
 ```
 
 - For tracking request and Dumping result
+  osm2hdx_extractor
 
 ```bash
 python osm2hdx_extractor.py --iso3 NPL --track
@@ -65,7 +71,7 @@ You can set it up as systemd service or cronjob in your PC if required or run ma
 
 1. **Create an AWS Lambda Function:**
 
-   - In the AWS Management Console, navigate to the Lambda service, Choose role and create one with necessary permissions 
+   - In the AWS Management Console, navigate to the Lambda service, Choose role and create one with necessary permissions
 
 2. **Set Environment Variables:**
 
@@ -91,14 +97,16 @@ You can set it up as systemd service or cronjob in your PC if required or run ma
 
 ### Streamlit
 
-You can run streamlit app to use frontend 
+You can run streamlit app to use frontend
 
-1. Run Locally 
+1. Run Locally
+
 ```bash
 pip install streamlit
-streamlit run streamlit_app.py
+streamlit run streamlit_extractor.py
 ```
-2. To Use hosted Service :  Go to [osm2hdx-extractor.streamlit.app](https://osm2hdx-extractor.streamlit.app/) 
+
+2. To Use hosted Service : Go to [osm2hdx-extractor.streamlit.app](https://osm2hdx-extractor.streamlit.app/)
 
 3. Use hosted service for visualization of datasets . Go to [osm2hdx-visualizer.streamlit.app](https://osm2hdx-visualizer.streamlit.app/))
 
@@ -108,7 +116,8 @@ streamlit run streamlit_app.py
 
 Set the following environment variables for proper configuration:
 
-Example : 
+Example :
+
 ```bash
 export RAWDATA_API_AUTH_TOKEN='my_token'
 ```
@@ -134,26 +143,34 @@ The `config.json` file contains configuration settings for the extraction proces
 ### Explanation
 
 #### `iso3`
+
 Defines iso3 for the hdx extraction. Only those which are preprovided from the database are supported. With iso3 you don't need to supply dataset_name, title and locations as it will populate them from database table. Use /hdx/ GET api to fetch list.
 
 #### `geometry`
+
 Defines the geographical area for extraction. Typically auto-populated with Custom geometry. Only use if iso3 is not supplied , Enabling geometry will require input of dataset_name, tille , locations compulsarily
 
 #### `queue`
+
 Specifies the Raw Data API queue, often set as "raw_special" for hdx country processing, This can be changed if there is disaster activation and special services are deployed so that those requests can be prioritized.
 
 #### `hdx_upload`
+
 Set this to true for uploading datasets to hdx. if hdx_upload is false then it will produce datasets to s3 but won't push it to hdx.
 
 #### `dataset`
+
 Contains information about the dataset:
+
 - `dataset_prefix`: Prefix for the dataset extraction which will be reflected in hdx page eg : hotosm_npl.
 - `dataset_folder`: Default Mother folder to place during extraction eg : HDX , Mindful to change this.
 - `dataset_title`: Title of the country export eg : Nepal
 - `dataset_locations`: Locations of dataset according to hdx python api , Usually list of iso3 code of country.
 
 #### `categories`
+
 Array of extraction categories, each represented by a dictionary with:
+
 - `Category Name`: Name of the extraction category (e.g., "Buildings", "Roads").
   - `hdx`: Contains `tags` and `caveats` for each catgory eg : tags : ['buildings'] and 'caveats': "Use it carefully , Not verifed'.
   - `types`: Types of geometries to extract (e.g., "polygons", "lines", "points").
@@ -165,25 +182,26 @@ Adjust these settings based on your project requirements and the types of featur
 
 Refer to the sample [config.json](./config.json) for default config.
 
-
 ## Script Overview
 
 ### Purpose
+
 The script is designed to trigger extraction requests for country exports using the Raw Data API. It automates the extraction process based on predefined configurations.
 
 ### Features
+
 - Supports both command line and AWS Lambda execution.
 - Dynamically fetches country details using raw data api while enabling custom extraction
 - Configurable extraction settings using a `config.json` file.
 - Helps debugging the service and track the api requests
 
+## Result Path
 
-## Result Path 
-
-- Your export download link will be generated based on the config , with raw-data-api logic it will be ```Base_download_url```/```dataset_folder```/```dataset_prefix```/```Category_name```/```feature_type```/```dataset_prefix_category_name_export_format.zip```
+- Your export download link will be generated based on the config , with raw-data-api logic it will be `Base_download_url`/`dataset_folder`/`dataset_prefix`/`Category_name`/`feature_type`/`dataset_prefix_category_name_export_format.zip`
 - Example for Waterways configuration :
-Here Category Name is ```Financial Services```, dataset_prefix is ```hotosm_cuw```, dataset_folder is ```HDX``` , feature_type is ```points``` and export format is ```kml``` and ```shp``` . This is being reflected as ```hotosm_cuw_financial_services``` dataset in HDX page.
-Each country / export can have multiple datasets divided in to multiple resources. 
+  Here Category Name is `Financial Services`, dataset_prefix is `hotosm_cuw`, dataset_folder is `HDX` , feature_type is `points` and export format is `kml` and `shp` . This is being reflected as `hotosm_cuw_financial_services` dataset in HDX page.
+  Each country / export can have multiple datasets divided in to multiple resources.
+
 ```json
 "a054b170-c403-4fcc-8e6d-6cd63b00a2b2": {
 "datasets": [
@@ -219,4 +237,5 @@ Each country / export can have multiple datasets divided in to multiple resource
 "started_at": "2024-01-20T18:35:54.966949"
 }
 ```
+
 See [sample result](./sample_result.json) to go through how result will look like

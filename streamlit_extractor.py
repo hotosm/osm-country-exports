@@ -5,7 +5,7 @@ import webbrowser
 import requests
 import streamlit as st
 
-from hdx_extractor import HDXProcessor
+from osm2hdx_extractor import HDXProcessor
 
 
 def generate_auth_token(raw_data_api_base_url):
