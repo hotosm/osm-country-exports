@@ -1,4 +1,4 @@
-## OSM2hdx
+## osm2hdx
 
 This repo has two main scripts : 
 The **osm2hdx Extractor** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
