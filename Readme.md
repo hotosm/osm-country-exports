@@ -1,7 +1,9 @@
-## HDX Extractor 
+## OSM2hdx
 
-The **HDX Extractor** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
+This repo has two main scripts : 
+The **osm2hdx Extractor** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
 
+The **osm2hdx Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading 
 ## Table of Contents
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -29,8 +31,8 @@ Make sure you have python3 installed on your system
 - Clone the repository and cd 
 
 ```bash
-git clone https://github.com/kshitijrajsharma/hdx-extractor
-cd hdx-extractor
+git clone https://github.com/kshitijrajsharma/osm2hdx
+cd osm2hdx
 ```
 
 ## Usage
@@ -42,19 +44,19 @@ Head over to [Env](#environment-variables) to verify you have setup correct env 
 - For Specific Countries : 
 
 ```bash
-python hdx_extractor.py --iso3 NPL
+python osm2hdx_extractor.py --iso3 NPL
 ```
 
 - For fetching scheduled exports daily
 
 ```bash
-python hdx_extractor.py --fetch-scheduled-exports daily
+python osm2hdx_extractor.py --fetch-scheduled-exports daily
 ```
 
 - For tracking request and Dumping result
 
 ```bash
-python hdx_extractor.py --iso3 NPL --track
+python osm2hdx_extractor.py --iso3 NPL --track
 ```
 
 You can set it up as systemd service or cronjob in your PC if required or run manually.
@@ -96,9 +98,9 @@ You can run streamlit app to use frontend
 pip install streamlit
 streamlit run streamlit_app.py
 ```
-2. To Use hosted Service :  Go to [hdx-extractor.streamlit.app](https://hdx-extractor.streamlit.app/) 
+2. To Use hosted Service :  Go to [osm2hdx-extractor.streamlit.app](https://osm2hdx-extractor.streamlit.app/) 
 
-3. Use hosted service for visualization of datasets . Go to [hdx-visualizer.streamlit.app]()
+3. Use hosted service for visualization of datasets . Go to [osm2hdx-visualizer.streamlit.app](https://osm2hdx-visualizer.streamlit.app/))
 
 ## Configuration
 
