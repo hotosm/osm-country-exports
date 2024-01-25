@@ -88,11 +88,7 @@ class HDXProcessor:
             return response.json()["task_id"]
         except requests.exceptions.RetryError as e:
             self.handle_rate_limit()
-            try:
-                return self.retry_post_request(request_config)
-            except Exception:
-                print(request_config)
-                raise ex
+            return self.retry_post_request(request_config)
 
     def handle_rate_limit(self):
         logging.warning("Rate limit reached. Waiting for 1 minute before retrying.")
