@@ -17,6 +17,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "building",
                     "building:levels",
                     "building:materials",
@@ -49,6 +50,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "highway",
                     "surface",
                     "smoothness",
@@ -83,6 +85,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "waterway",
                     "covered",
                     "width",
@@ -118,6 +121,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "amenity",
                     "man_made",
                     "shop",
@@ -156,6 +160,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "aeroway",
                     "building",
                     "emergency",
@@ -191,6 +196,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "amenity",
                     "building",
                     "port",
@@ -222,6 +228,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "amenity",
                     "building",
                     "operator:type",
@@ -254,6 +261,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "amenity",
                     "building",
                     "healthcare",
@@ -287,6 +295,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "place",
                     "population",
                     "is_in",
@@ -317,6 +326,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "amenity",
                     "operator",
                     "network",
@@ -348,6 +358,7 @@
                 ],
                 "select": [
                     "name",
+                    "name:en",
                     "railway",
                     "ele",
                     "operator:type",
