@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class HDXProcessor:
-    def __init__(self, config_json=None, language_json=None):
+    def __init__(self, config_json=None, language_json="language.json"):
         if config_json is None:
             raise ValueError("Config JSON couldn't be found")
 
