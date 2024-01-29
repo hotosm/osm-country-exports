@@ -1,0 +1,782 @@
+{
+    "ABW": [
+        "name:nl"
+    ],
+    "AFG": [
+        "name:fa"
+    ],
+    "AGO": [
+        "name:pt"
+    ],
+    "AIA": [],
+    "ALA": [],
+    "ALB": [
+        "name:sq"
+    ],
+    "AND": [
+        "name:ca"
+    ],
+    "ARE": [
+        "name:ar"
+    ],
+    "ARG": [
+        "name:es"
+    ],
+    "ARM": [
+        "name:hy"
+    ],
+    "ASM": [],
+    "ATA": [],
+    "ATF": [
+        "name:fr"
+    ],
+    "ATG": [],
+    "AUS": [],
+    "AUT": [
+        "name:de"
+    ],
+    "AZE": [
+        "name:az"
+    ],
+    "BDI": [
+        "name:fr",
+        "name:rn"
+    ],
+    "BEL": [
+        "name:nl",
+        "name:fr",
+        "name:de"
+    ],
+    "BEN": [
+        "name:fr"
+    ],
+    "BFA": [
+        "name:fr"
+    ],
+    "BGD": [
+        "name:bn"
+    ],
+    "BGR": [
+        "name:bg"
+    ],
+    "BHR": [
+        "name:ar"
+    ],
+    "BHS": [],
+    "BIH": [
+        "name:bs",
+        "name:hr",
+        "name:sr"
+    ],
+    "BLM": [
+        "name:fr"
+    ],
+    "BLR": [
+        "name:be",
+        "name:ru"
+    ],
+    "BLZ": [],
+    "BMU": [],
+    "BOL": [
+        "name:es",
+        "name:ay",
+        "name:aro",
+        "name:baq",
+        "name:cax",
+        "name:cby",
+        "name:cav",
+        "name:cay",
+        "name:cbc",
+        "name:cbi",
+        "name:ese",
+        "name:gn",
+        "name:gnw",
+        "name:gay",
+        "name:ito",
+        "name:lec",
+        "name:cbk",
+        "name:cmc",
+        "name:mrq",
+        "name:mjo",
+        "name:moa",
+        "name:yor",
+        "name:mtt",
+        "name:mzp",
+        "name:pbb",
+        "name:qup",
+        "name:qu",
+        "name:srk",
+        "name:tac",
+        "name:tpj",
+        "name:too",
+        "name:cbu",
+        "name:wee",
+        "name:wym",
+        "name:yuk",
+        "name:yuz",
+        "name:zam"
+    ],
+    "BRA": [
+        "name:pt"
+    ],
+    "BRB": [],
+    "BRN": [
+        "name:ms"
+    ],
+    "BTN": [
+        "name:dz"
+    ],
+    "BVT": [
+        "name:no"
+    ],
+    "BWA": [],
+    "CAF": [
+        "name:fr",
+        "name:sg"
+    ],
+    "CAN": [
+        "name:fr"
+    ],
+    "CCK": [
+        "name:ms"
+    ],
+    "CHE": [
+        "name:fr",
+        "name:de",
+        "name:it",
+        "name:rm"
+    ],
+    "CHL": [
+        "name:es"
+    ],
+    "CHN": [
+        "name:zh"
+    ],
+    "CIV": [
+        "name:fr"
+    ],
+    "CMR": [
+        "name:fr"
+    ],
+    "COD": [
+        "name:fr"
+    ],
+    "COG": [
+        "name:fr"
+    ],
+    "COK": [
+        "name:mi"
+    ],
+    "COL": [
+        "name:es"
+    ],
+    "COM": [
+        "name:ar",
+        "name:swb",
+        "name:fr"
+    ],
+    "CPV": [
+        "name:km",
+        "name:pt"
+    ],
+    "CRI": [
+        "name:es"
+    ],
+    "CUB": [
+        "name:es"
+    ],
+    "CUW": [
+        "name:nl"
+    ],
+    "CXR": [
+        "name:zh",
+        "name:ms"
+    ],
+    "CYM": [],
+    "CYP": [
+        "name:el",
+        "name:tr"
+    ],
+    "CZE": [
+        "name:cs",
+        "name:sk"
+    ],
+    "DEU": [
+        "name:de"
+    ],
+    "DJI": [
+        "name:ar",
+        "name:fr"
+    ],
+    "DMA": [],
+    "DNK": [
+        "name:da"
+    ],
+    "DOM": [
+        "name:es"
+    ],
+    "DZA": [
+        "name:ar",
+        "name:ber"
+    ],
+    "ECU": [
+        "name:es",
+        "name:qu"
+    ],
+    "EGY": [
+        "name:ar"
+    ],
+    "ERI": [
+        "name:ti"
+    ],
+    "ESH": [
+        "name:ar",
+        "name:fr"
+    ],
+    "ESP": [
+        "name:es"
+    ],
+    "EST": [
+        "name:et"
+    ],
+    "ETH": [
+        "name:aa",
+        "name:am",
+        "name:om",
+        "name:so",
+        "name:ti"
+    ],
+    "FIN": [
+        "name:fi",
+        "name:sv"
+    ],
+    "FJI": [
+        "name:fj",
+        "name:hif"
+    ],
+    "FLK": [],
+    "FRA": [
+        "name:fr"
+    ],
+    "FRO": [],
+    "FSM": [],
+    "GAB": [
+        "name:fr"
+    ],
+    "GBR": [],
+    "GEO": [
+        "name:ka"
+    ],
+    "GGY": [],
+    "GHA": [],
+    "GIB": [],
+    "GIN": [
+        "name:fr"
+    ],
+    "GLP": [
+        "name:fr"
+    ],
+    "GMB": [],
+    "GNB": [
+        "name:pt"
+    ],
+    "GNQ": [
+        "name:fr",
+        "name:pt",
+        "name:es"
+    ],
+    "GRC": [
+        "name:el"
+    ],
+    "GRD": [],
+    "GRL": [
+        "name:gre",
+        "name:da"
+    ],
+    "GTM": [
+        "name:es"
+    ],
+    "GUF": [
+        "name:fr"
+    ],
+    "GUM": [],
+    "GUY": [],
+    "HKG": [
+        "name:zh"
+    ],
+    "HMD": [],
+    "HND": [
+        "name:es"
+    ],
+    "HRV": [
+        "name:hr"
+    ],
+    "HTI": [
+        "name:fr",
+        "name:ht"
+    ],
+    "HUN": [
+        "name:hu"
+    ],
+    "IDN": [
+        "name:id"
+    ],
+    "IMN": [],
+    "IND": [
+        "name:hi",
+        "name:ta"
+    ],
+    "IOT": [],
+    "IRL": [
+        "name:ga"
+    ],
+    "IRN": [
+        "name:fa"
+    ],
+    "IRQ": [
+        "name:ar",
+        "name:ku"
+    ],
+    "ISL": [
+        "name:is"
+    ],
+    "ISR": [
+        "name:he"
+    ],
+    "ITA": [
+        "name:it"
+    ],
+    "JAM": [],
+    "JEY": [],
+    "JOR": [
+        "name:ar"
+    ],
+    "JPN": [
+        "name:ja"
+    ],
+    "KAZ": [
+        "name:kk",
+        "name:ru"
+    ],
+    "KEN": [
+        "name:sw"
+    ],
+    "KGZ": [
+        "name:ky",
+        "name:ru"
+    ],
+    "KHM": [
+        "name:fr"
+    ],
+    "KIR": [
+        "name:gil"
+    ],
+    "KNA": [],
+    "KOR": [
+        "name:ko"
+    ],
+    "KWT": [
+        "name:ar"
+    ],
+    "LAO": [
+        "name:lo"
+    ],
+    "LBN": [
+        "name:ar"
+    ],
+    "LBR": [],
+    "LBY": [
+        "name:ar"
+    ],
+    "LCA": [],
+    "LIE": [
+        "name:de"
+    ],
+    "LKA": [
+        "name:si",
+        "name:ta"
+    ],
+    "LSO": [
+        "name:st"
+    ],
+    "LTU": [
+        "name:lt"
+    ],
+    "LUX": [
+        "name:fr",
+        "name:de",
+        "name:lb"
+    ],
+    "LVA": [
+        "name:lv"
+    ],
+    "MAC": [
+        "name:zh",
+        "name:pt"
+    ],
+    "MAF": [
+        "name:fr"
+    ],
+    "MAR": [
+        "name:ar",
+        "name:ber"
+    ],
+    "MCO": [
+        "name:fr"
+    ],
+    "MDA": [
+        "name:ro"
+    ],
+    "MDG": [
+        "name:fr",
+        "name:mg"
+    ],
+    "MDV": [
+        "name:dv"
+    ],
+    "MEX": [
+        "name:es"
+    ],
+    "MHL": [
+        "name:it"
+    ],
+    "MKD": [
+        "name:mk",
+        "name:sq"
+    ],
+    "MLI": [
+        "name:bam",
+        "name:bobo",
+        "name:bzx",
+        "name:dog",
+        "name:ff",
+        "name:mey",
+        "name:kvx",
+        "name:man",
+        "name:myl",
+        "name:ses",
+        "name:son",
+        "name:snk",
+        "name:taq"
+    ],
+    "MLT": [
+        "name:mt"
+    ],
+    "MMR": [
+        "name:my"
+    ],
+    "MNE": [
+        "name:cnr",
+        "name:bs",
+        "name:hr",
+        "name:sr",
+        "name:sq"
+    ],
+    "MNG": [
+        "name:mn"
+    ],
+    "MNP": [
+        "name:tr"
+    ],
+    "MOZ": [
+        "name:pt"
+    ],
+    "MRT": [
+        "name:ar"
+    ],
+    "MSR": [],
+    "MTQ": [
+        "name:mah"
+    ],
+    "MUS": [
+        "name:mfe"
+    ],
+    "MWI": [
+        "name:ny"
+    ],
+    "MYS": [
+        "name:ms"
+    ],
+    "MYT": [
+        "name:fr"
+    ],
+    "NAM": [],
+    "NCL": [
+        "name:nl"
+    ],
+    "NER": [
+        "name:fr"
+    ],
+    "NFK": [
+        "name:nrk"
+    ],
+    "NGA": [],
+    "NIC": [
+        "name:es"
+    ],
+    "NIU": [
+        "name:niu"
+    ],
+    "NLD": [
+        "name:nl"
+    ],
+    "NOR": [
+        "name:no",
+        "name:se"
+    ],
+    "NPL": [
+        "name:ne"
+    ],
+    "NRU": [
+        "name:na"
+    ],
+    "NZL": [
+        "name:mi"
+    ],
+    "OMN": [
+        "name:ar"
+    ],
+    "PAK": [
+        "name:ur"
+    ],
+    "PAN": [
+        "name:es"
+    ],
+    "PCN": [],
+    "PER": [
+        "name:es",
+        "name:qu",
+        "name:ay",
+        "name:cni"
+    ],
+    "PHL": [
+        "name:fil"
+    ],
+    "PLW": [
+        "name:pau"
+    ],
+    "PNG": [
+        "name:ho",
+        "name:tpi"
+    ],
+    "POL": [
+        "name:pl"
+    ],
+    "PRI": [
+        "name:es"
+    ],
+    "PRK": [
+        "name:ko"
+    ],
+    "PRT": [
+        "name:pt"
+    ],
+    "PRY": [
+        "name:es",
+        "name:gn"
+    ],
+    "PSE": [
+        "name:ar"
+    ],
+    "PYF": [
+        "name:fr"
+    ],
+    "QAT": [
+        "name:ar"
+    ],
+    "REU": [
+        "name:fr"
+    ],
+    "ROU": [
+        "name:ro"
+    ],
+    "RUS": [
+        "name:ru"
+    ],
+    "RWA": [
+        "name:fr",
+        "name:rw",
+        "name:sw"
+    ],
+    "SAU": [
+        "name:ar"
+    ],
+    "SDN": [
+        "name:ar"
+    ],
+    "SEN": [
+        "name:fr"
+    ],
+    "SGP": [
+        "name:ms",
+        "name:zh",
+        "name:ta"
+    ],
+    "SGS": [],
+    "SHN": [],
+    "SJM": [
+        "name:no"
+    ],
+    "SLB": [],
+    "SLE": [],
+    "SLV": [
+        "name:es"
+    ],
+    "SMR": [
+        "name:it"
+    ],
+    "SOM": [
+        "name:so",
+        "name:so"
+    ],
+    "SPM": [
+        "name:fr"
+    ],
+    "SRB": [
+        "name:sr"
+    ],
+    "SSD": [],
+    "STP": [
+        "name:pt"
+    ],
+    "SUR": [
+        "name:nl"
+    ],
+    "SVK": [
+        "name:sk"
+    ],
+    "SVN": [
+        "name:sl"
+    ],
+    "SWE": [
+        "name:sv"
+    ],
+    "SWZ": [
+        "name:ss"
+    ],
+    "SXM": [
+        "name:nl"
+    ],
+    "SYC": [
+        "name:fr",
+        "name:crs",
+        "name:fr"
+    ],
+    "SYR": [
+        "name:ar"
+    ],
+    "Saba": [
+        "name:nl"
+    ],
+    "TCA": [],
+    "TCD": [
+        "name:ar",
+        "name:fr"
+    ],
+    "TGO": [
+        "name:fr"
+    ],
+    "THA": [
+        "name:th"
+    ],
+    "TJK": [
+        "name:tg"
+    ],
+    "TKL": [
+        "name:tkl"
+    ],
+    "TKM": [
+        "name:tk"
+    ],
+    "TLS": [
+        "name:pt",
+        "name:tet"
+    ],
+    "TTO": [],
+    "TUN": [
+        "name:ar"
+    ],
+    "TUR": [
+        "name:tr"
+    ],
+    "TUV": [
+        "name:tvl"
+    ],
+    "TWN": [
+        "name:zh"
+    ],
+    "TZA": [
+        "name:sw"
+    ],
+    "UGA": [
+        "name:sw"
+    ],
+    "UKR": [
+        "name:uk"
+    ],
+    "UMI": [],
+    "URY": [
+        "name:es"
+    ],
+    "USA": [],
+    "UZB": [
+        "name:uz"
+    ],
+    "VAT": [
+        "name:it",
+        "name:la"
+    ],
+    "VCT": [],
+    "VEN": [
+        "name:es"
+    ],
+    "VGB": [],
+    "VIR": [],
+    "VNM": [
+        "name:vi"
+    ],
+    "VUT": [
+        "name:fr",
+        "name:bis"
+    ],
+    "WLF": [],
+    "WSM": [
+        "name:sm"
+    ],
+    "XKX": [
+        "name:sq",
+        "name:sr"
+    ],
+    "YEM": [
+        "name:ar"
+    ],
+    "ZAF": [
+        "name:af",
+        "name:nr",
+        "name:st",
+        "name:nso",
+        "name:ssw",
+        "name:ts",
+        "name:tn",
+        "name:ve",
+        "name:xh",
+        "name:zu"
+    ],
+    "ZMB": [],
+    "ZWE": [
+        "name:ny",
+        "name:chj",
+        "name:kck",
+        "name:kho",
+        "name:nmq",
+        "name:nde",
+        "name:nr",
+        "name:shk",
+        "name:sn",
+        "name:st",
+        "name:toi",
+        "name:tna",
+        "name:ven",
+        "name:xh"
+    ]
+}

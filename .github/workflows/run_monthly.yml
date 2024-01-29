@@ -1,0 +1,19 @@
+name: Run cron projects
+
+on:
+  schedule:
+    - cron: "0 0 1 * *" # every month at day 1 00
+
+jobs:
+  Run-Scheduled-Exports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.11"
+
+      - name: Shoot monthly projects
+        run: python osm2hdx_extractor --fetch-scheduled-exports monthly

@@ -14,10 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class HDXProcessor:
-    def __init__(
-        self,
-        config_json=None,
-    ):
+    def __init__(self, config_json=None, language_json=None):
         if config_json is None:
             raise ValueError("Config JSON couldn't be found")
 
@@ -28,19 +25,35 @@ class HDXProcessor:
                 self.config = json.load(f)
         else:
             raise ValueError("Invalid value for config_json")
+        self.languages = None
+        if isinstance(language_json, dict):
+            self.languages = language_json
+        elif os.path.exists(language_json):
+            with open(language_json) as f:
+                self.languages = json.load(f)
 
         self.RAW_DATA_API_BASE_URL = os.environ.get(
             "RAW_DATA_API_BASE_URL", "https://api-prod.raw-data.hotosm.org/v1"
         )
-        logging.info("Using %s",self.RAW_DATA_API_BASE_URL)
+        logging.info("Using %s", self.RAW_DATA_API_BASE_URL)
         self.RAW_DATA_SNAPSHOT_URL = f"{self.RAW_DATA_API_BASE_URL}/custom/snapshot/"
         self.RAWDATA_API_AUTH_TOKEN = os.environ.get("RAWDATA_API_AUTH_TOKEN")
 
     def generate_filtered_config(self, export):
         config_temp = copy.deepcopy(self.config)
         for key in export["properties"].keys():
-            #overwrite config.json keys if it is already in predefined export keys
+            # overwrite config.json keys if it is already in predefined export keys
             config_temp[key] = export["properties"].get(key)
+        print(config_temp.get("iso3"))
+        if config_temp.get("iso3"):
+            if self.languages:
+                language_select = self.languages.get(config_temp.get("iso3"))
+                if language_select:
+                    for category_group in config_temp.get("categories"):
+                        for category in category_group:
+                            category_group[category]["select"] = (
+                                category_group[category].get("select") + language_select
+                            )
         return json.dumps(config_temp)
 
     def process_export(self, export):
@@ -124,37 +137,51 @@ class HDXProcessor:
             json.dump(results, f, indent=2)
         logging.info("Done ! Find result at result.json")
 
-    def clean_hdx_export_response(self,feature):
-        feature['properties'].pop('id')
-        feature['properties'].pop('cid')
-        if feature["properties"].get("categories") is None :
-            feature['properties'].pop('categories')
+    def clean_hdx_export_response(self, feature):
+        feature["properties"].pop("id")
+        feature["properties"].pop("cid")
+        if feature["properties"].get("categories") is None:
+            feature["properties"].pop("categories")
         if feature["geometry"].get("type") is None:
-            feature.pop('geometry')
-        else : 
-            feature.pop('iso3')
+            feature.pop("geometry")
+        else:
+            feature.pop("iso3")
         return feature
 
     def get_scheduled_exports(self, frequency):
+        combined_results = []
         max_retries = 3
-        for retry in range(max_retries):
-            try:
-                active_projects_api_url = f"{self.RAW_DATA_API_BASE_URL}/hdx/?dataset_update_frequency={frequency}"
-                response = requests.get(active_projects_api_url, timeout=10)
-                response.raise_for_status()
-                return response.json()
-            except Exception as e:
-                logging.warn(
-                    f" : Request failed (attempt {retry + 1}/{max_retries}): {e}"
+        limit = 100
+        skip = 0
+
+        while True:
+            for retry in range(max_retries):
+                try:
+                    active_projects_api_url = f"{self.RAW_DATA_API_BASE_URL}/hdx/?dataset_update_frequency={frequency}&skip={skip}&limit={limit}"
+                    response = requests.get(active_projects_api_url, timeout=10)
+                    response.raise_for_status()
+                    data = response.json()
+                    if not data:
+                        return combined_results
+                    combined_results.extend(data)
+                    break
+                except Exception as e:
+                    logging.warning(
+                        f"Request failed (attempt {retry + 1}/{max_retries}): {e}"
+                    )
+            else:
+                raise Exception(
+                    f"Failed to fetch scheduled projects after {max_retries} attempts"
                 )
-        raise Exception(f"Failed to fetch scheduled projects {max_retries} attempts")
-    
-    def get_hdx_project_details(self, key,value):
+
+            skip += limit
+
+    def get_hdx_project_details(self, key, value):
         project_api_url = f"{self.RAW_DATA_API_BASE_URL}/hdx/?{key}={value}"
         max_retries = 3
         for retry in range(max_retries):
             try:
-                logging.info("Fetching Hdx export details %s:%s",key,value)
+                logging.info("Fetching Hdx export details %s:%s", key, value)
                 response = requests.get(project_api_url, timeout=20)
                 response.raise_for_status()
                 response = response.json()
@@ -167,17 +194,23 @@ class HDXProcessor:
                 logging.warning(
                     "Request failed (attempt %s/%s): %s", retry + 1, max_retries, ex
                 )
-        logging.error("Failed to fetch hdx export details %s:%s after 3 retries", key,value)
+        logging.error(
+            "Failed to fetch hdx export details %s:%s after 3 retries", key, value
+        )
         return None
 
-    def init_call(self, iso3=None,ids=None, fetch_scheduled_exports=None):
+    def init_call(self, iso3=None, ids=None, fetch_scheduled_exports=None):
         all_export_details = []
         if iso3:
             for country in iso3:
-                all_export_details.append(self.get_hdx_project_details(key="iso3",value=country.upper()))
-        if ids :
+                all_export_details.append(
+                    self.get_hdx_project_details(key="iso3", value=country.upper())
+                )
+        if ids:
             for hdx_id in ids:
-                all_export_details.append(self.get_hdx_project_details(key="id",value=hdx_id))
+                all_export_details.append(
+                    self.get_hdx_project_details(key="id", value=hdx_id)
+                )
 
         if fetch_scheduled_exports:
             frequency = fetch_scheduled_exports
@@ -187,19 +220,21 @@ class HDXProcessor:
             )
             scheduled_exports = self.get_scheduled_exports(frequency)
             for export in scheduled_exports:
-                all_export_details.append(self.clean_hdx_export_response(export))
+                if export:
+                    all_export_details.append(self.clean_hdx_export_response(export))
 
         task_ids = []
 
         logger.info("Supplied %s exports", len(all_export_details))
         for export in all_export_details:
-            if export :
+            if export:
                 task_id = self.process_export(export)
                 if task_id is not None:
                     task_ids.append(task_id)
-            logging.info(
-                "Request : All request to Raw Data API has been sent, Logging %s task_ids",
-                len(task_ids),)
+        logging.info(
+            "Request : All request to Raw Data API has been sent, Logging %s task_ids",
+            len(task_ids),
+        )
         logging.info(task_ids)
         return task_ids
 
@@ -216,7 +251,7 @@ def lambda_handler(event, context):
 
     hdx_processor = HDXProcessor(config_json)
     hdx_processor.init_call(
-        iso3=iso3,ids=ids, fetch_scheduled_exports=fetch_scheduled_exports
+        iso3=iso3, ids=ids, fetch_scheduled_exports=fetch_scheduled_exports
     )
 
 
@@ -255,11 +290,14 @@ def main():
     args = parser.parse_args()
 
     config_json = os.environ.get("CONFIG_JSON", "config.json")
+    language_json = os.environ.get("LANGUAGE_JSON", "language.json")
     if os.environ.get("RAWDATA_API_AUTH_TOKEN", None) is None:
         raise ValueError("RAWDATA_API_AUTH_TOKEN environment variable not found.")
-    hdx_processor = HDXProcessor(config_json)
+    hdx_processor = HDXProcessor(config_json, language_json)
     task_ids = hdx_processor.init_call(
-        iso3=args.iso3, ids=args.ids, fetch_scheduled_exports=args.fetch_scheduled_exports
+        iso3=args.iso3,
+        ids=args.ids,
+        fetch_scheduled_exports=args.fetch_scheduled_exports,
     )
     if args.track:
         hdx_processor.track_tasks_status(task_ids)
