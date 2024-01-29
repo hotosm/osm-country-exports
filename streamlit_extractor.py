@@ -151,8 +151,7 @@ def main():
             hdx_processor.RAWDATA_API_AUTH_TOKEN = rawdata_api_auth_token
 
             selected_iso3_values = [iso3 for iso3, _ in selected_iso3]
-            selected_hdx_ids_values = [ids for ids, _ in selected_iso3]
-
+            selected_hdx_ids_values = [ids for ids, _ in selected_hdx_ids]
             task_ids = hdx_processor.init_call(
                 iso3=selected_iso3_values,
                 ids=selected_hdx_ids_values,
