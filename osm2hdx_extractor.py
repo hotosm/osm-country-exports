@@ -44,6 +44,7 @@ class HDXProcessor:
         for key in export["properties"].keys():
             # overwrite config.json keys if it is already in predefined export keys
             config_temp[key] = export["properties"].get(key)
+        print(config_temp.get("iso3"))
         if config_temp.get("iso3"):
             if self.languages:
                 language_select = self.languages.get(config_temp.get("iso3"))
@@ -219,7 +220,8 @@ class HDXProcessor:
             )
             scheduled_exports = self.get_scheduled_exports(frequency)
             for export in scheduled_exports:
-                all_export_details.append(self.clean_hdx_export_response(export))
+                if export:
+                    all_export_details.append(self.clean_hdx_export_response(export))
 
         task_ids = []
 
