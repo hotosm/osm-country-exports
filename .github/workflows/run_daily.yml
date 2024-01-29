@@ -1,4 +1,4 @@
-name: Run cron projects
+name: Run daily cron projects
 
 on:
   schedule:
@@ -7,6 +7,8 @@ on:
 jobs:
   Run-Scheduled-Exports:
     runs-on: ubuntu-latest
+    env:
+      RAWDATA_API_AUTH_TOKEN: ${{ secrets.RAWDATA_API_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v2
 
