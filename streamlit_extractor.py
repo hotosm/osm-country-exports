@@ -44,7 +44,7 @@ def fetch_hdx_api(raw_data_api_base_url, skip=0, limit=100):
 
 
 def main():
-    st.title("HDX Extractor App")
+    st.title("Country Extractor App")
 
     default_config_path = "config.json"
     default_config_data = None
