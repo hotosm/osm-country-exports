@@ -1,7 +1,9 @@
+import concurrent.futures
 from datetime import datetime
 from urllib.parse import quote
 
 import humanize
+import pandas as pd
 import requests
 import streamlit as st
 
@@ -117,9 +119,61 @@ def calculate_selected_size_and_date(selected_items, data):
 
 
 def fetch_last_run_info(api_base_url, folder_path):
-    meta_endpoint = f"/s3/get/{quote(folder_path)}"
-    response = requests.get(f"{api_base_url}{meta_endpoint}")
-    return response.json()
+    try:
+        meta_endpoint = f"/s3/get/{quote(folder_path)}"
+        response = requests.get(f"{api_base_url}{meta_endpoint}")
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError:
+        return None
+
+
+def process_feature(feature, api_base_url):
+    properties = feature["properties"]
+    dataset_info = properties.get("dataset", {})
+    iso3 = properties.get("iso3")
+    dataset_folder = dataset_info.get("dataset_folder")
+    dataset_prefix = dataset_info.get("dataset_prefix")
+
+    folder_path = (
+        f"{dataset_folder}/{iso3}/" if iso3 else f"{dataset_folder}/{dataset_prefix}/"
+    )
+    last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}/meta.json")
+
+    record = {
+        "ID": properties.get("id"),
+        "ISO3": iso3,
+        # "CID": properties.get("cid"),
+        "Dataset Title": dataset_info.get("dataset_title"),
+        "HDX Upload": properties.get("hdx_upload"),
+        # "Dataset Folder": dataset_folder,
+        "Dataset Prefix": dataset_prefix,
+        "Update Frequency": dataset_info.get("update_frequency"),
+        "Elapsed Time": last_run_info.get("elapsed_time", "N/A")
+        if last_run_info
+        else "N/A",
+        "Last Run Date": last_run_info.get("started_at", "N/A")
+        if last_run_info
+        else "N/A",
+    }
+    return record
+
+
+def all_hdx_table(data, api_base_url, progress_bar):
+    records = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_feature = {
+            executor.submit(process_feature, feature, api_base_url): feature
+            for feature in data
+        }
+
+        for i, future in enumerate(concurrent.futures.as_completed(future_to_feature)):
+            record = future.result()
+            records.append(record)
+            # Update the progress bar
+            progress_bar.progress((i + 1) / len(data))
+
+    return pd.DataFrame(records)
 
 
 def generate_summary(meta_data):
@@ -209,10 +263,15 @@ def visualize_data(api_base_url, selected_features):
         # Fetch and display last run info
         last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}/meta.json")
         # st.sidebar.subheader("Meta:")
-        last_run_summary, hdx_upload_summary, hdx_datasets_summary = generate_summary(
-            last_run_info
-        )
-        visualize_summary(last_run_summary, hdx_upload_summary, hdx_datasets_summary)
+        if last_run_info:
+            (
+                last_run_summary,
+                hdx_upload_summary,
+                hdx_datasets_summary,
+            ) = generate_summary(last_run_info)
+            visualize_summary(
+                last_run_summary, hdx_upload_summary, hdx_datasets_summary
+            )
 
 
 def main():
@@ -222,6 +281,12 @@ def main():
     )
 
     available_features = get_available_features(raw_data_api_base_url)
+    df = pd.DataFrame()
+    display_all_info = st.checkbox("Display all exports info")
+    if display_all_info:
+        progress_bar = st.progress(0)
+        df = all_hdx_table(available_features, raw_data_api_base_url, progress_bar)
+        st.dataframe(df)
     selected_feature_indices = st.selectbox(
         "Select countries to fetch:",
         range(len(available_features)),
