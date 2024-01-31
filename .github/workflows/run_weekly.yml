@@ -17,5 +17,8 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Shoot weekly projects
         run: python osm2hdx_extractor.py --fetch-scheduled-exports weekly

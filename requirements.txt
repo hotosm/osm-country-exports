@@ -1,2 +1,2 @@
-humanize
-datetime
+humanize==4.9.0 
+datetime==5.4
