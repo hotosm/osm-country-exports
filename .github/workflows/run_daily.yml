@@ -3,9 +3,7 @@ name: Run daily cron projects
 on:
   schedule:
     - cron: "0 6 * * *" # Run every day at 6 UTC
-  push:
-    branches:
-      - main
+
 jobs:
   Run-Scheduled-Exports:
     runs-on: ubuntu-latest
