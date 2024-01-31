@@ -18,4 +18,4 @@ jobs:
           python-version: "3.11"
 
       - name: Shoot monthly projects
-        run: python osm2hdx_extractor --fetch-scheduled-exports monthly
+        run: python osm2hdx_extractor.py --fetch-scheduled-exports monthly

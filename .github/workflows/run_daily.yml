@@ -3,7 +3,9 @@ name: Run daily cron projects
 on:
   schedule:
     - cron: "0 6 * * *" # Run every day at 6 UTC
-
+  push:
+    branches:
+      - main
 jobs:
   Run-Scheduled-Exports:
     runs-on: ubuntu-latest
@@ -18,4 +20,4 @@ jobs:
           python-version: "3.11"
 
       - name: Shoot daily projects
-        run: python osm2hdx_extractor --fetch-scheduled-exports daily
+        run: python osm2hdx_extractor.py --fetch-scheduled-exports daily
