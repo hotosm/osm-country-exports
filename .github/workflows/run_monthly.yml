@@ -21,4 +21,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Shoot monthly projects
-        run: python osm2hdx_extractor.py --fetch-scheduled-exports monthly
+        run: python extract.py --fetch-scheduled-exports monthly

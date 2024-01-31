@@ -45,24 +45,24 @@ cd osm2hdx
 Head over to [Env](#environment-variables) to verify you have setup correct env variables & Run the script from the command line with the following options:
 
 - For Specific Countries :
-  osm2hdx_extractor
+  extract
 
 ```bash
-python osm2hdx_extractor.py --iso3 NPL
+python extract.py --iso3 NPL
 ```
 
 - For fetching scheduled exports daily
-  osm2hdx_extractor
+  extract
 
 ```bash
-python osm2hdx_extractor.py --fetch-scheduled-exports daily
+python extract.py --fetch-scheduled-exports daily
 ```
 
 - For tracking request and Dumping result
-  osm2hdx_extractor
+  extract
 
 ```bash
-python osm2hdx_extractor.py --iso3 NPL --track
+python extract.py --iso3 NPL --track
 ```
 
 You can set it up as systemd service or cronjob in your PC if required or run manually.

@@ -22,4 +22,4 @@ jobs:
 
       - name: Shoot daily projects
 
-        run: python osm2hdx_extractor.py --fetch-scheduled-exports daily
+        run: python extract.py --fetch-scheduled-exports daily
