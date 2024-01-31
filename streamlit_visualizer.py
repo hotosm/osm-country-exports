@@ -8,7 +8,7 @@ import requests
 import streamlit as st
 
 
-def fetch_hdx_api(raw_data_api_base_url, skip=0, limit=100):
+def get_available_features(raw_data_api_base_url, skip=0, limit=300):
     response_comb = []
     while True:
         hdx_api_url = f"{raw_data_api_base_url}/hdx/?skip={skip}&limit={limit}"
@@ -20,10 +20,6 @@ def fetch_hdx_api(raw_data_api_base_url, skip=0, limit=100):
         skip = limit
         limit += 100
     return response_comb
-
-
-def get_available_features(api_base_url):
-    return fetch_hdx_api(api_base_url)
 
 
 def transform_to_tree_structure(data):
