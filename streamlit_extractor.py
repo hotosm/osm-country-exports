@@ -4,7 +4,7 @@ import webbrowser
 
 import requests
 import streamlit as st
-from extract import HDXProcessor
+from extract import CountryProcessor
 
 
 def generate_auth_token(raw_data_api_base_url):
@@ -144,7 +144,7 @@ def main():
         # st.session_state[extraction_button_key] = True
         spinner = st.spinner("Extracting... Please wait.")
         with spinner:
-            hdx_processor = HDXProcessor(config_data)
+            hdx_processor = CountryProcessor(config_data)
 
             hdx_processor.RAW_DATA_API_BASE_URL = raw_data_api_base_url
             hdx_processor.RAWDATA_API_AUTH_TOKEN = rawdata_api_auth_token

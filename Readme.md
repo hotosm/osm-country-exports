@@ -1,9 +1,9 @@
-## osm2hdx
+## osm country extractor
 
 This repo has two main scripts :
-The **osm2hdx Extractor** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
+The **Extract** script is designed to trigger extraction requests for countries which will be later pushed to [HDX platform](https://data.humdata.org/). It utilizes Raw Data API for data extraction. For more complex queries navigate to [osm-rawdata module](https://github.com/hotosm/osm-rawdata/)
 
-The **osm2hdx Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading
+The **streamlit Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading
 
 ## Table of Contents
 

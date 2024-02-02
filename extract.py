@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class HDXProcessor:
+class CountryProcessor:
     def __init__(self, config_json=None, language_json="language.json"):
         if config_json is None:
             raise ValueError("Config JSON couldn't be found")
@@ -249,7 +249,7 @@ def lambda_handler(event, context):
     ids = event.get("ids", None)
     fetch_scheduled_exports = event.get("fetch_scheduled_exports", "daily")
 
-    hdx_processor = HDXProcessor(config_json)
+    hdx_processor = CountryProcessor(config_json)
     hdx_processor.init_call(
         iso3=iso3, ids=ids, fetch_scheduled_exports=fetch_scheduled_exports
     )
@@ -293,7 +293,7 @@ def main():
     language_json = os.environ.get("LANGUAGE_JSON", "language.json")
     if os.environ.get("RAWDATA_API_AUTH_TOKEN", None) is None:
         raise ValueError("RAWDATA_API_AUTH_TOKEN environment variable not found.")
-    hdx_processor = HDXProcessor(config_json, language_json)
+    hdx_processor = CountryProcessor(config_json, language_json)
     task_ids = hdx_processor.init_call(
         iso3=args.iso3,
         ids=args.ids,
