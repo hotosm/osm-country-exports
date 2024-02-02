@@ -210,10 +210,10 @@ def visualize_summary(last_run, hdx_upload_summary, hdx_datasets_summary):
     st.sidebar.write(
         f"**Last run:** {humanize.naturaldate(datetime.strptime(last_run['Last run'], '%Y-%m-%dT%H:%M:%S.%f'))} | "
         f"**Processing time:** {last_run['Processing time']} | "
-        f"**HDX Upload:**  Total : {last_run['Total datasets']} , Success: {hdx_upload_summary['SUCCESS']}, Failed: {hdx_upload_summary['FAILED']}, Skipped: {hdx_upload_summary['SKIPPED']}"
+        f"**Upload:**  Total : {last_run['Total datasets']} , Success: {hdx_upload_summary['SUCCESS']}, Failed: {hdx_upload_summary['FAILED']}, Skipped: {hdx_upload_summary['SKIPPED']}"
     )
 
-    st.sidebar.subheader("Datasets:")
+    st.sidebar.subheader("HDX Datasets:")
     for dataset_summary in hdx_datasets_summary:
         category_name = dataset_summary["category"]
         st.sidebar.markdown(
@@ -251,7 +251,7 @@ def visualize_data(api_base_url, selected_features):
         data = response.json()
 
         if not data:
-            st.warning("No data available for visualization.")
+            st.warning("No data available.")
             continue
         tree_structure = transform_to_tree_structure(data)
         visualize_folder_structure(api_base_url, tree_structure, data)
