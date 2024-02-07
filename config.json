@@ -31,7 +31,6 @@
                 "where": "tags['building'] IS NOT NULL",
                 "formats": [
                     "geojson",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -65,7 +64,7 @@
                 "where": "tags['highway'] IS NOT NULL",
                 "formats": [
                     "geojson",
-                    "fgb",
+                    "shp",
                     "kml"
                 ]
             }
@@ -102,7 +101,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -141,7 +139,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -178,7 +175,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -213,7 +209,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -246,7 +241,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -282,7 +276,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -312,7 +305,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -346,7 +338,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
@@ -380,7 +371,6 @@
                 "formats": [
                     "geojson",
                     "shp",
-                    "fgb",
                     "kml"
                 ]
             }
