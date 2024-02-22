@@ -3,7 +3,8 @@ name: Run monthly cron projects
 on:
   schedule:
     - cron: "0 0 1 * *" # every month at day 1 00
-
+  workflow_dispatch:
+  
 jobs:
   Run-Scheduled-Exports:
     runs-on: ubuntu-latest
