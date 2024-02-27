@@ -80,6 +80,7 @@
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
                 },
                 "types": [
+                    "points",
                     "lines",
                     "polygons"
                 ],
@@ -354,7 +355,8 @@
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
                 },
                 "types": [
-                    "lines"
+                    "lines",
+                    "points"
                 ],
                 "select": [
                     "name",
