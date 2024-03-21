@@ -58,8 +58,8 @@ def main():
                 return
 
     raw_data_api_base_url = st.text_input(
-        "Enter RAW_DATA_API_BASE_URL (default is https://api-prod.raw-data.hotosm.org/v1):",
-        "https://api-prod.raw-data.hotosm.org/v1",
+        "Enter RAW_DATA_API_BASE_URL (default is https://api-stage.raw-data.hotosm.org/v1):",
+        "https://api-stage.raw-data.hotosm.org/v1",
     )
     rawdata_api_auth_token = st.text_input(
         "Enter RAWDATA_API_AUTH_TOKEN:", type="password"

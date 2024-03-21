@@ -32,9 +32,7 @@ class CountryProcessor:
             with open(language_json) as f:
                 self.languages = json.load(f)
 
-        self.RAW_DATA_API_BASE_URL = os.environ.get(
-            "RAW_DATA_API_BASE_URL"
-        )
+        self.RAW_DATA_API_BASE_URL = os.environ.get("RAW_DATA_API_BASE_URL")
         self.RAWDATA_API_AUTH_TOKEN = os.environ.get("RAWDATA_API_AUTH_TOKEN")
 
     def generate_filtered_config(self, export):
@@ -232,7 +230,8 @@ class CountryProcessor:
                 if task_id is not None:
                     task_ids.append(task_id)
         logging.info(
-            "Request : All request to Raw Data API has been sent, Logging %s task_ids",
+            "Request : All request to %s has been sent, Logging %s task_ids",
+            self.RAW_DATA_API_BASE_URL,
             len(task_ids),
         )
         logging.info(task_ids)
