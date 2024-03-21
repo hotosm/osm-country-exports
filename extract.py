@@ -33,7 +33,7 @@ class CountryProcessor:
                 self.languages = json.load(f)
 
         self.RAW_DATA_API_BASE_URL = os.environ.get(
-            "RAW_DATA_API_BASE_URL", "https://api-prod.raw-data.hotosm.org/v1"
+            "RAW_DATA_API_BASE_URL"
         )
         logging.info("Using %s", self.RAW_DATA_API_BASE_URL)
         self.RAW_DATA_SNAPSHOT_URL = f"{self.RAW_DATA_API_BASE_URL}/custom/snapshot/"
