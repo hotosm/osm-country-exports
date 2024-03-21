@@ -35,8 +35,6 @@ class CountryProcessor:
         self.RAW_DATA_API_BASE_URL = os.environ.get(
             "RAW_DATA_API_BASE_URL"
         )
-        logging.info("Using %s", self.RAW_DATA_API_BASE_URL)
-        self.RAW_DATA_SNAPSHOT_URL = f"{self.RAW_DATA_API_BASE_URL}/custom/snapshot/"
         self.RAWDATA_API_AUTH_TOKEN = os.environ.get("RAWDATA_API_AUTH_TOKEN")
 
     def generate_filtered_config(self, export):
@@ -79,8 +77,10 @@ class CountryProcessor:
                 "Content-Type": "application/json",
                 "Access-Token": self.RAWDATA_API_AUTH_TOKEN,
             }
+            RAW_DATA_SNAPSHOT_URL = f"{self.RAW_DATA_API_BASE_URL}/custom/snapshot/"
+
             response = req_session.post(
-                self.RAW_DATA_SNAPSHOT_URL,
+                RAW_DATA_SNAPSHOT_URL,
                 headers=HEADERS,
                 data=request_config,
                 timeout=10,
