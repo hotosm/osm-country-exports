@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RAWDATA_API_AUTH_TOKEN: ${{ secrets.RAWDATA_API_AUTH_TOKEN }}
+      RAW_DATA_API_BASE_URL : 'https://api-prod.raw-data.hotosm.org/v1'
     steps:
       - uses: actions/checkout@v2
 
