@@ -31,6 +31,9 @@
                 "where": "tags['building'] IS NOT NULL",
                 "formats": [
                     "geojson",
+                    "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -65,6 +68,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -102,6 +107,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -140,6 +147,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -176,6 +185,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -210,6 +221,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -242,6 +255,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -277,6 +292,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -306,6 +323,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -339,6 +358,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
@@ -373,6 +394,8 @@
                 "formats": [
                     "geojson",
                     "shp",
+                    "fgb",
+                    "gpkg",
                     "kml"
                 ]
             }
