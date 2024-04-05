@@ -227,6 +227,14 @@ if selected_layer_title:
     if updated_categories != json.dumps(current_categories, indent=4):
         updated_fields["categories"] = json.loads(updated_categories)
 
+    current_geometry = selected_layer["properties"].get("geometry")
+    updated_geometry = st.text_area(
+        "Geometry", value=json.dumps(current_geometry, indent=4)
+    )
+    if updated_geometry != json.dumps(current_geometry, indent=4):
+        updated_fields["geometry"] = json.loads(updated_geometry)
+
+
 if st.button("Save Updates"):
     with st.spinner("Updating layer..."):
         response = update_hdx(
