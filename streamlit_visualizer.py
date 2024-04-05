@@ -7,21 +7,10 @@ import pandas as pd
 import requests
 import streamlit as st
 
-
-def get_available_features(raw_data_api_base_url, skip=0, limit=300):
-    response_comb = []
-    while True:
-        hdx_api_url = f"{raw_data_api_base_url}/hdx/?skip={skip}&limit={limit}"
-        response = requests.get(hdx_api_url)
-        response.raise_for_status()
-        if not response.json():
-            break  # Break the loop for an empty response
-        response_comb.extend(response.json())
-        skip = limit
-        limit += 100
-    return response_comb
+from utils import fetch_last_run_info, get_available_features
 
 
+@st.cache_data
 def transform_to_tree_structure(data):
     tree_structure = {}
     for item in data:
@@ -32,6 +21,7 @@ def transform_to_tree_structure(data):
     return tree_structure
 
 
+@st.cache_data
 def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_label=""):
     lists = []
     for key, value in tree_structure.items():
@@ -64,6 +54,7 @@ def convert_to_collapsible_lists(api_base_url, tree_structure, data, parent_labe
     return lists
 
 
+@st.cache_data
 def visualize_folder_structure(api_base_url, tree_structure, data):
     def build_html_recursive(item):
         html = "<ul>"
@@ -94,6 +85,7 @@ def visualize_folder_structure(api_base_url, tree_structure, data):
         )
 
 
+@st.cache_data
 def calculate_selected_size_and_date(selected_items, data):
     total_size = 0
     last_modified_dates = []
@@ -114,16 +106,7 @@ def calculate_selected_size_and_date(selected_items, data):
     return total_size, latest_last_modified_date
 
 
-def fetch_last_run_info(api_base_url, folder_path):
-    try:
-        meta_endpoint = f"/s3/get/{quote(folder_path)}"
-        response = requests.get(f"{api_base_url}{meta_endpoint}")
-        response.raise_for_status()
-        return response.json()
-    except requests.HTTPError:
-        return None
-
-
+@st.cache_data
 def process_feature(feature, api_base_url):
     properties = feature["properties"]
     dataset_info = properties.get("dataset", {})
@@ -134,7 +117,7 @@ def process_feature(feature, api_base_url):
     folder_path = (
         f"{dataset_folder}/{iso3}/" if iso3 else f"{dataset_folder}/{dataset_prefix}/"
     )
-    last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}/meta.json")
+    last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}meta.json")
 
     record = {
         "ID": properties.get("id"),
@@ -145,16 +128,17 @@ def process_feature(feature, api_base_url):
         # "Dataset Folder": dataset_folder,
         "Dataset Prefix": dataset_prefix,
         "Update Frequency": dataset_info.get("update_frequency"),
-        "Elapsed Time": last_run_info.get("elapsed_time", "N/A")
-        if last_run_info
-        else "N/A",
-        "Last Run Date": last_run_info.get("started_at", "N/A")
-        if last_run_info
-        else "N/A",
+        "Elapsed Time": (
+            last_run_info.get("elapsed_time", "N/A") if last_run_info else "N/A"
+        ),
+        "Last Run Date": (
+            last_run_info.get("started_at", "N/A") if last_run_info else "N/A"
+        ),
     }
     return record
 
 
+@st.cache_data
 def all_hdx_table(data, api_base_url, progress_bar):
     records = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -172,6 +156,7 @@ def all_hdx_table(data, api_base_url, progress_bar):
     return pd.DataFrame(records)
 
 
+@st.cache_data
 def generate_summary(meta_data):
     last_run = {
         "Last run": meta_data.get("started_at"),
@@ -205,30 +190,7 @@ def generate_summary(meta_data):
     return last_run, hdx_upload_summary, hdx_datasets_summary
 
 
-def visualize_summary(last_run, hdx_upload_summary, hdx_datasets_summary):
-    st.sidebar.title("Summary")
-    st.sidebar.write(
-        f"**Last run:** {humanize.naturaldate(datetime.strptime(last_run['Last run'], '%Y-%m-%dT%H:%M:%S.%f'))} | "
-        f"**Processing time:** {last_run['Processing time']} | "
-        f"**Upload:**  Total : {last_run['Total datasets']} , Success: {hdx_upload_summary['SUCCESS']}, Failed: {hdx_upload_summary['FAILED']}, Skipped: {hdx_upload_summary['SKIPPED']}"
-    )
-
-    st.sidebar.subheader("HDX Datasets:")
-    for dataset_summary in hdx_datasets_summary:
-        category_name = dataset_summary["category"]
-        st.sidebar.markdown(
-            f"<details><summary><a href='{dataset_summary['hdx_url']}' style='font-size: 16px; text-decoration: none; color: #0366d6;'>{category_name}</a></summary>"
-            f"<ul>"
-            f"<li><b>Name:</b> {dataset_summary['name']}</li>"
-            f"<li><b>Resources:</b> {dataset_summary['resources']}</li>"
-            f"<li><b>Total Size:</b> {humanize.naturalsize(dataset_summary['total_size'])}</li>"
-            f"<li><b>Formats:</b> {', '.join(f'{format_name} ({count})' for format_name, count in dataset_summary['formats'].items())}</li>"
-            f"</ul>"
-            f"</details>",
-            unsafe_allow_html=True,
-        )
-
-
+@st.cache_data
 def download_file(api_base_url, key):
     return f"{api_base_url}/s3/get/{quote(key)}"
 
@@ -247,18 +209,20 @@ def visualize_data(api_base_url, selected_features):
             else f"{dataset_folder}/{dataset_prefix}/"
         )
         endpoint = f"/s3/files/?folder={quote(folder_path)}"
-        response = requests.get(f"{api_base_url}{endpoint}")
-        data = response.json()
+
+        with st.spinner(f"Loading data for {iso3 or dataset_prefix}..."):
+            response = requests.get(f"{api_base_url}{endpoint}")
+            data = response.json()
 
         if not data:
             st.warning("No data available.")
             continue
+
         tree_structure = transform_to_tree_structure(data)
         visualize_folder_structure(api_base_url, tree_structure, data)
 
         # Fetch and display last run info
-        last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}/meta.json")
-        # st.sidebar.subheader("Meta:")
+        last_run_info = fetch_last_run_info(api_base_url, f"{folder_path}meta.json")
         if last_run_info:
             (
                 last_run_summary,
@@ -276,13 +240,16 @@ def main():
         "Enter RAW_DATA_API_BASE_URL:", "https://api-prod.raw-data.hotosm.org/v1"
     )
 
-    available_features = get_available_features(raw_data_api_base_url)
+    with st.spinner("Loading available features..."):
+        available_features = get_available_features(raw_data_api_base_url)
+
     df = pd.DataFrame()
     display_all_info = st.checkbox("Display all exports info")
     if display_all_info:
         progress_bar = st.progress(0)
         df = all_hdx_table(available_features, raw_data_api_base_url, progress_bar)
         st.dataframe(df)
+
     selected_feature_indices = st.selectbox(
         "Select countries to fetch:",
         range(len(available_features)),

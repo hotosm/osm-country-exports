@@ -1,12 +1,16 @@
 import json
 import os
 import webbrowser
+from functools import lru_cache
 
 import requests
 import streamlit as st
+
 from extract import CountryProcessor
+from utils import get_available_features as fetch_hdx_api
 
 
+@lru_cache(maxsize=None)
 def generate_auth_token(raw_data_api_base_url):
     auth_login_url = f"{raw_data_api_base_url}/auth/login"
     response = requests.get(auth_login_url)
@@ -22,24 +26,6 @@ def generate_auth_token(raw_data_api_base_url):
         st.error(
             "Failed to generate login link. Please check the raw data API base URL."
         )
-
-
-def fetch_hdx_api(raw_data_api_base_url, skip=0, limit=100):
-    response_comb = []
-
-    while True:
-        hdx_api_url = f"{raw_data_api_base_url}/hdx/?skip={skip}&limit={limit}"
-        response = requests.get(hdx_api_url)
-        response.raise_for_status()
-
-        if not response.json():
-            break  # Break the loop for empty response
-
-        response_comb.extend(response.json())
-        skip = limit
-        limit += 100
-
-    return response_comb
 
 
 def main():
@@ -58,15 +44,24 @@ def main():
                 return
 
     raw_data_api_base_url = st.text_input(
-        "Enter RAW_DATA_API_BASE_URL (default is https://api-stage.raw-data.hotosm.org/v1):",
-        "https://api-stage.raw-data.hotosm.org/v1",
+        "Enter RAW_DATA_API_BASE_URL (default is https://api-prod.raw-data.hotosm.org/v1):",
+        "https://api-prod.raw-data.hotosm.org/v1",
     )
-    rawdata_api_auth_token = st.text_input(
-        "Enter RAWDATA_API_AUTH_TOKEN:", type="password"
-    )
+    if "rawdata_api_auth_token" not in st.session_state:
+        st.session_state.rawdata_api_auth_token = st.text_input(
+            "Enter RAWDATA_API_AUTH_TOKEN:", type="password"
+        )
+    else:
+        st.session_state.rawdata_api_auth_token = st.text_input(
+            "Enter RAWDATA_API_AUTH_TOKEN:",
+            type="password",
+            value=st.session_state.rawdata_api_auth_token,
+        )
+
     rawdata_auth_link = st.button("Generate Raw Data API Auth Token")
     if rawdata_auth_link:
-        generate_auth_token(raw_data_api_base_url)
+        with st.spinner("Generating auth token..."):
+            generate_auth_token(raw_data_api_base_url)
 
     config_json_input = st.text_area(
         "Enter JSON configuration or URL:",
@@ -90,7 +85,8 @@ def main():
     if show_config_button:
         st.json(config_data)
 
-    hdx_data = fetch_hdx_api(raw_data_api_base_url)
+    with st.spinner("Fetching HDX API..."):
+        hdx_data = fetch_hdx_api(raw_data_api_base_url)
     iso3_options = sorted(
         [
             (
@@ -141,13 +137,14 @@ def main():
         extraction_button_label = "Extraction in Progress..."
     elif st.button(extraction_button_label, key=extraction_button_key):
         extraction_in_progress = True
-        # st.session_state[extraction_button_key] = True
         spinner = st.spinner("Extracting... Please wait.")
         with spinner:
             hdx_processor = CountryProcessor(config_data)
 
             hdx_processor.RAW_DATA_API_BASE_URL = raw_data_api_base_url
-            hdx_processor.RAWDATA_API_AUTH_TOKEN = rawdata_api_auth_token
+            hdx_processor.RAWDATA_API_AUTH_TOKEN = (
+                st.session_state.rawdata_api_auth_token
+            )
 
             selected_iso3_values = [iso3 for iso3, _ in selected_iso3]
             selected_hdx_ids_values = [ids for ids, _ in selected_hdx_ids]
@@ -187,7 +184,6 @@ def main():
                     st.warning("Result file not found.")
             st.success(f"Extraction Completed. Task IDs: {task_ids}")
             extraction_in_progress = False
-            # st.session_state[extraction_button_key] = False
 
 
 if __name__ == "__main__":
