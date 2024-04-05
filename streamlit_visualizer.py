@@ -86,6 +86,31 @@ def visualize_folder_structure(api_base_url, tree_structure, data):
 
 
 @st.cache_data
+def visualize_summary(last_run, hdx_upload_summary, hdx_datasets_summary):
+    st.sidebar.title("Summary")
+    st.sidebar.write(
+        f"**Last run:** {humanize.naturaldate(datetime.strptime(last_run['Last run'], '%Y-%m-%dT%H:%M:%S.%f'))} | "
+        f"**Processing time:** {last_run['Processing time']} | "
+        f"**Upload:**  Total : {last_run['Total datasets']} , Success: {hdx_upload_summary['SUCCESS']}, Failed: {hdx_upload_summary['FAILED']}, Skipped: {hdx_upload_summary['SKIPPED']}"
+    )
+
+    st.sidebar.subheader("HDX Datasets:")
+    for dataset_summary in hdx_datasets_summary:
+        category_name = dataset_summary["category"]
+        st.sidebar.markdown(
+            f"<details><summary><a href='{dataset_summary['hdx_url']}' style='font-size: 16px; text-decoration: none; color: #0366d6;'>{category_name}</a></summary>"
+            f"<ul>"
+            f"<li><b>Name:</b> {dataset_summary['name']}</li>"
+            f"<li><b>Resources:</b> {dataset_summary['resources']}</li>"
+            f"<li><b>Total Size:</b> {humanize.naturalsize(dataset_summary['total_size'])}</li>"
+            f"<li><b>Formats:</b> {', '.join(f'{format_name} ({count})' for format_name, count in dataset_summary['formats'].items())}</li>"
+            f"</ul>"
+            f"</details>",
+            unsafe_allow_html=True,
+        )
+
+
+@st.cache_data
 def calculate_selected_size_and_date(selected_items, data):
     total_size = 0
     last_modified_dates = []
@@ -200,8 +225,10 @@ def visualize_data(api_base_url, selected_features):
         iso3 = feature["properties"].get("iso3")
         dataset_folder = feature["properties"]["dataset"]["dataset_folder"]
         dataset_prefix = feature["properties"]["dataset"]["dataset_prefix"]
+        dataset_frequency = feature["properties"]["dataset"]["update_frequency"]
 
         st.subheader(f"Exports for {iso3 or dataset_prefix}")
+        st.write("Update Frequency:", dataset_frequency)
 
         folder_path = (
             f"{dataset_folder}/{iso3}/"
