@@ -163,7 +163,7 @@ def process_feature(feature, api_base_url):
     return record
 
 
-@st.cache_data
+# @st.cache_data
 def all_hdx_table(data, api_base_url, progress_bar):
     records = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
