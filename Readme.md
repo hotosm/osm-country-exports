@@ -144,7 +144,7 @@ The `config.json` file contains configuration settings for the extraction proces
 
 #### `iso3`
 
-Defines iso3 for the hdx extraction. Only those which are preprovided from the database are supported. With iso3 you don't need to supply dataset_name, title and locations as it will populate them from database table. Use /hdx/ GET api to fetch list.
+Defines iso3 for the hdx extraction. Only those which are preprovided from the database are supported. With iso3 you don't need to supply dataset_name, title and locations as it will populate them from database table. Use /cron/ GET api to fetch list.
 
 #### `geometry`
 
@@ -213,7 +213,7 @@ The script is designed to trigger extraction requests for country exports using 
         "resources": [
         {
             "name": "hotosm_cuw_financial_services_points_shp.zip",
-            "url": "https://demo_url/HDX/CUW/financial_services/points/hotosm_cuw_financial_services_points_shp.zip",
+            "url": "https://demo_url/cron/CUW/financial_services/points/hotosm_cuw_financial_services_points_shp.zip",
             "format": "shp",
             "description": "ESRI Shapefile",
             "size": 1749,
@@ -222,7 +222,7 @@ The script is designed to trigger extraction requests for country exports using 
         },
         {
             "name": "hotosm_cuw_financial_services_points_kml.zip",
-            "url": "https://demo_url/HDX/CUW/financial_services/points/hotosm_cuw_financial_services_points_kml.zip",
+            "url": "https://demo_url/cron/CUW/financial_services/points/hotosm_cuw_financial_services_points_kml.zip",
             "format": "kml",
             "description": "KML",
             "size": 946,

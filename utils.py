@@ -6,7 +6,7 @@ import requests
 def get_available_features(raw_data_api_base_url, skip=0, limit=300):
     response_comb = []
     while True:
-        hdx_api_url = f"{raw_data_api_base_url}/hdx/?skip={skip}&limit={limit}"
+        hdx_api_url = f"{raw_data_api_base_url}/cron/?skip={skip}&limit={limit}"
         response = requests.get(hdx_api_url)
         response.raise_for_status()
         if not response.json():

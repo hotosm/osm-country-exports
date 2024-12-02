@@ -30,7 +30,7 @@ def send_request(method, url, data=None, headers=None):
 # CRUD operation functions
 @st.cache_data
 def create_hdx(data, base_url, access_token):
-    url = f"{base_url}/hdx/"
+    url = f"{base_url}/cron/"
     headers = {"Access-Token": access_token}
 
     return send_request("POST", url, data=data, headers=headers)
@@ -39,16 +39,16 @@ def create_hdx(data, base_url, access_token):
 @st.cache_data
 def read_hdx(hdx_id=None, base_url=None, access_token=None):
     if hdx_id:
-        url = f"{base_url}/hdx/{hdx_id}"
+        url = f"{base_url}/cron/{hdx_id}"
     else:
-        url = f"{base_url}/hdx/"
+        url = f"{base_url}/cron/"
     headers = {"Access-Token": access_token}
     return send_request("GET", url, headers=headers)
 
 
 @st.cache_data
 def update_hdx(hdx_id, data, base_url, access_token):
-    url = f"{base_url}/hdx/{hdx_id}"
+    url = f"{base_url}/cron/{hdx_id}"
     headers = {"Access-Token": access_token}
     return send_request("PATCH", url, data=data, headers=headers)
 

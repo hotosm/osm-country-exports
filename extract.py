@@ -155,7 +155,7 @@ class CountryProcessor:
         while True:
             for retry in range(max_retries):
                 try:
-                    active_projects_api_url = f"{self.RAW_DATA_API_BASE_URL}/hdx/?update_frequency={frequency}&skip={skip}&limit={limit}"
+                    active_projects_api_url = f"{self.RAW_DATA_API_BASE_URL}/cron/?update_frequency={frequency}&skip={skip}&limit={limit}"
                     response = requests.get(active_projects_api_url, timeout=10)
                     response.raise_for_status()
                     data = response.json()
@@ -175,7 +175,7 @@ class CountryProcessor:
             skip += limit
 
     def get_hdx_project_details(self, key, value):
-        project_api_url = f"{self.RAW_DATA_API_BASE_URL}/hdx/?{key}={value}"
+        project_api_url = f"{self.RAW_DATA_API_BASE_URL}/cron/?{key}={value}"
         max_retries = 3
         for retry in range(max_retries):
             try:
