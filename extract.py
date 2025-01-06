@@ -76,14 +76,12 @@ class CountryProcessor:
                 "Access-Token": self.RAWDATA_API_AUTH_TOKEN,
             }
             RAW_DATA_SNAPSHOT_URL = f"{self.RAW_DATA_API_BASE_URL}/custom/snapshot/"
-            print(request_config)
             response = req_session.post(
                 RAW_DATA_SNAPSHOT_URL,
                 headers=HEADERS,
                 data=request_config,
                 timeout=10,
             )
-            print(response.json())
             response.raise_for_status()
             return response.json()["task_id"]
         except requests.exceptions.RetryError as e:
