@@ -7,7 +7,6 @@
                 "hdx": {
                     "tags": [
                         "facilities-infrastructure",
-                        "buildings",
                         "geodata"
                     ],
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
@@ -295,7 +294,6 @@
                 "hdx": {
                     "tags": [
                         "populated places-settlements",
-                        "villages",
                         "geodata"
                     ],
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
@@ -325,8 +323,6 @@
                 "hdx": {
                     "tags": [
                         "economics",
-                        "financial institutions",
-                        "financial services",
                         "geodata"
                     ],
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
