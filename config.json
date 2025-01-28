@@ -1,5 +1,7 @@
 {
     "iso3": "ISO",
+    "include_stats": true,
+    "include_stats_html": true,
     "hdx_upload": true,
     "categories": [
         {
