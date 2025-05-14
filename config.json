@@ -151,12 +151,13 @@
             }
         },
         {
-            "Culture, Community and Artistic Sites": {
+            "Cultural Places": {
                 "tags": [
                     "cultural",
                     "heritage",
                     "historic-sites",
-                    "geodata"
+                    "geodata",
+                    "entertainment"
                 ],
                 "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive",
                 "types": [
@@ -172,9 +173,11 @@
                     "operator",
                     "opening_hours",
                     "website",
-                    "description"
+                    "description",
+                    "capacity",
+                    "screen"
                 ],
-                "where": "tags['tourism'] IN ('museum', 'gallery', 'theatre', 'artwork', 'attraction', 'zoo', 'aquarium') OR tags['amenity'] IN ('arts_centre', 'library', 'community_centre', 'theatre', 'fountain', 'planetarium', 'public_bookcase', 'social_centre', 'stage', 'place_of_mourning', 'place_of_worship') OR tags['historic'] IS NOT NULL OR tags['heritage'] IS NOT NULL",
+                "where": "tags['tourism'] IN ('museum', 'gallery', 'theatre', 'artwork', 'attraction', 'zoo', 'aquarium', 'cinema') OR tags['amenity'] IN ('arts_centre', 'library', 'community_centre', 'theatre', 'fountain', 'planetarium', 'public_bookcase', 'social_centre', 'stage', 'place_of_mourning', 'place_of_worship', 'cinema') OR tags['historic'] IS NOT NULL OR tags['heritage'] IS NOT NULL",
                 "formats": [
                     "geojson",
                     "shp",
