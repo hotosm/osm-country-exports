@@ -49,7 +49,8 @@
                     "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive"
                 },
                 "types": [
-                    "lines"
+                    "lines",
+                    "polygons"
                 ],
                 "select": [
                     "name",
