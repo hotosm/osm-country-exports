@@ -12,6 +12,12 @@ from requests.packages.urllib3.util.retry import Retry
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+hdx_hapi_priority_countries = [
+    "AFG", "BFA", "CMR", "CAF", "TCD", "COL",
+    "COD", "ETH", "HTI", "MLI", "MOZ", "MMR", "NER",
+    "NGA", "SOM", "SSD", "PSE", "SDN", "SYR", "UKR",
+    "VEN", "YEM"
+]
 
 class CountryProcessor:
     def __init__(self, config_json=None, language_json="language.json"):
@@ -201,11 +207,27 @@ class CountryProcessor:
 
     def init_call(self, iso3=None, ids=None, fetch_scheduled_exports=None):
         all_export_details = []
+
         if iso3:
+            # Normalize to uppercase
+            iso3 = [code.upper() for code in iso3]
+            # Sort iso3 so HDX priority countries come first (in priority order)
+            iso3 = sorted(
+                iso3,
+                key=lambda x: (
+                    x not in hdx_hapi_priority_countries,
+                    hdx_hapi_priority_countries.index(x)
+                    if x in hdx_hapi_priority_countries
+                    else x,  # Keep alphabetical order for non-priority
+                ),
+            )
+            logger.info("Processing countries in order: %s", iso3)
+            # Append iso codes
             for country in iso3:
                 all_export_details.append(
-                    self.get_hdx_project_details(key="iso3", value=country.upper())
+                    self.get_hdx_project_details(key="iso3", value=country)
                 )
+
         if ids:
             for hdx_id in ids:
                 all_export_details.append(
