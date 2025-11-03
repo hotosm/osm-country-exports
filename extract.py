@@ -13,11 +13,30 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 hdx_hapi_priority_countries = [
-    "AFG", "BFA", "CMR", "CAF", "TCD", "COL",
-    "COD", "ETH", "HTI", "MLI", "MOZ", "MMR", "NER",
-    "NGA", "SOM", "SSD", "PSE", "SDN", "SYR", "UKR",
-    "VEN", "YEM"
+    "AFG",
+    "BFA",
+    "CMR",
+    "CAF",
+    "TCD",
+    "COL",
+    "COD",
+    "ETH",
+    "HTI",
+    "MLI",
+    "MOZ",
+    "MMR",
+    "NER",
+    "NGA",
+    "SOM",
+    "SSD",
+    "PSE",
+    "SDN",
+    "SYR",
+    "UKR",
+    "VEN",
+    "YEM",
 ]
+
 
 class CountryProcessor:
     def __init__(self, config_json=None, language_json="language.json"):
@@ -141,6 +160,7 @@ class CountryProcessor:
         logging.info("Done ! Find result at result.json")
 
     def clean_hdx_export_response(self, feature):
+        # print(feature)
         feature["properties"].pop("id")
         feature["properties"]["dataset"]["dataset_locations"] = list(
             feature["properties"]["dataset"]["dataset_locations"]
@@ -150,8 +170,6 @@ class CountryProcessor:
             feature["properties"].pop("categories")
         if feature["geometry"].get("type") is None:
             feature.pop("geometry")
-        else:
-            feature.pop("iso3")
         return feature
 
     def get_scheduled_exports(self, frequency):
@@ -164,6 +182,7 @@ class CountryProcessor:
             for retry in range(max_retries):
                 try:
                     active_projects_api_url = f"{self.RAW_DATA_API_BASE_URL}/cron/?update_frequency={frequency}&skip={skip}&limit={limit}"
+                    # print(active_projects_api_url)
                     response = requests.get(active_projects_api_url, timeout=10)
                     response.raise_for_status()
                     data = response.json()
@@ -216,9 +235,11 @@ class CountryProcessor:
                 iso3,
                 key=lambda x: (
                     x not in hdx_hapi_priority_countries,
-                    hdx_hapi_priority_countries.index(x)
-                    if x in hdx_hapi_priority_countries
-                    else x,  # Keep alphabetical order for non-priority
+                    (
+                        hdx_hapi_priority_countries.index(x)
+                        if x in hdx_hapi_priority_countries
+                        else x
+                    ),  # Keep alphabetical order for non-priority
                 ),
             )
             logger.info("Processing countries in order: %s", iso3)
@@ -241,6 +262,7 @@ class CountryProcessor:
                 frequency,
             )
             scheduled_exports = self.get_scheduled_exports(frequency)
+            # print(scheduled_exports)
             for export in scheduled_exports:
                 if export:
                     all_export_details.append(self.clean_hdx_export_response(export))
