@@ -153,6 +153,42 @@
             }
         },
         {
+            "Cultural Places": {
+                "tags": [
+                    "cultural",
+                    "heritage",
+                    "historic-sites",
+                    "geodata",
+                    "entertainment"
+                ],
+                "caveats": "OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive",
+                "types": [
+                    "points",
+                    "polygons"
+                ],
+                "select": [
+                    "name",
+                    "tourism",
+                    "amenity",
+                    "historic",
+                    "heritage",
+                    "operator",
+                    "opening_hours",
+                    "website",
+                    "description",
+                    "capacity",
+                    "screen"
+                ],
+                "where": "tags['tourism'] IN ('museum', 'gallery', 'theatre', 'artwork', 'attraction', 'zoo', 'aquarium', 'cinema') OR tags['amenity'] IN ('arts_centre', 'library', 'community_centre', 'theatre', 'fountain', 'planetarium', 'public_bookcase', 'social_centre', 'stage', 'place_of_mourning', 'place_of_worship', 'cinema') OR tags['historic'] IS NOT NULL OR tags['heritage'] IS NOT NULL",
+                "formats": [
+                    "geojson",
+                    "shp",
+                    "gpkg",
+                    "kml"
+                ]
+            }
+        },
+        {
             "Airports": {
                 "hdx": {
                     "tags": [
