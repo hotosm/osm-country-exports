@@ -9,13 +9,13 @@ categories:
     hdx:
       title: Buildings
       notes: |
-        Building footprints across the region from OSM. Includes every feature tagged as a building (`building=*`), from residential homes through hospitals, schools, and places of worship. Useful for population estimation, damage assessment, and urban planning.
+        Building footprints across the region: every feature tagged `building=*`, from residential homes to hospitals, schools, and places of worship. Useful for population estimation, damage assessment, and urban planning.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:building](https://wiki.openstreetmap.org/wiki/Key:building)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [building](https://wiki.openstreetmap.org/wiki/Key:building)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -54,13 +54,13 @@ categories:
     hdx:
       title: Roads
       notes: |
-        Road network across the region from OSM. Includes everything tagged with `highway`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
+        Road network across the region tagged `highway=*`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:highway](https://wiki.openstreetmap.org/wiki/Key:highway)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [highway](https://wiki.openstreetmap.org/wiki/Key:highway)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, roads, transportation]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -100,13 +100,13 @@ categories:
     hdx:
       title: Waterways
       notes: |
-        Water features across the region from OSM. Includes rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
+        Water features across the region: rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:waterway](https://wiki.openstreetmap.org/wiki/Key:waterway), [Key:water](https://wiki.openstreetmap.org/wiki/Key:water), [Key:natural](https://wiki.openstreetmap.org/wiki/Key:natural)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [waterway](https://wiki.openstreetmap.org/wiki/Key:waterway), [water](https://wiki.openstreetmap.org/wiki/Key:water), [natural](https://wiki.openstreetmap.org/wiki/Key:natural)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, hydrology, rivers]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -148,13 +148,13 @@ categories:
     hdx:
       title: Railways
       notes: |
-        Railway lines and stations from OSM, tagged with `railway`. Includes rail lines, tram tracks, and stations. Useful for transport accessibility analysis and basemap context.
+        Railway lines and stations tagged `railway=*`: rail lines, tram tracks, and stations. Useful for transport accessibility analysis and basemap context.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:railway](https://wiki.openstreetmap.org/wiki/Key:railway)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [railway](https://wiki.openstreetmap.org/wiki/Key:railway)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, railways, transportation]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -191,13 +191,13 @@ categories:
     hdx:
       title: Education Facilities
       notes: |
-        Education facilities from OSM. Includes schools, kindergartens, colleges, and universities tagged via `amenity` or `building`. Useful for school-access mapping, education planning, and resource allocation.
+        Education facilities: schools, kindergartens, colleges, and universities tagged via `amenity` or `building`. Useful for school-access mapping, education planning, and resource allocation.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [Key:building](https://wiki.openstreetmap.org/wiki/Key:building)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [education facilities-schools, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -235,13 +235,13 @@ categories:
     hdx:
       title: Health Facilities
       notes: |
-        Health facilities from OSM. Includes hospitals, clinics, pharmacies, doctors, and dentists tagged via `amenity` or `healthcare`. Useful for service-access analysis, emergency response, and healthcare gap mapping.
+        Health facilities: hospitals, clinics, pharmacies, doctors, and dentists tagged via `amenity` or `healthcare`. Useful for service-access analysis, emergency response, and healthcare gap mapping.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [Key:healthcare](https://wiki.openstreetmap.org/wiki/Key:healthcare)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [healthcare](https://wiki.openstreetmap.org/wiki/Key:healthcare)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, health, health facilities]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -281,13 +281,13 @@ categories:
     hdx:
       title: Populated Places
       notes: |
-        Settlements and residential areas from OSM. Includes named cities, towns, villages, suburbs, and residential land (`place=*` and `landuse=residential`). Useful for demographic context, settlement-level targeting, and population analysis.
+        Settlements and residential areas: named cities, towns, villages, suburbs, and residential land (`place=*` and `landuse=residential`). Useful for demographic context, settlement-level targeting, and population analysis.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:place](https://wiki.openstreetmap.org/wiki/Key:place), [Key:landuse](https://wiki.openstreetmap.org/wiki/Key:landuse)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [place](https://wiki.openstreetmap.org/wiki/Key:place), [landuse](https://wiki.openstreetmap.org/wiki/Key:landuse)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, populated places-settlements]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -323,13 +323,13 @@ categories:
     hdx:
       title: Financial Services
       notes: |
-        Financial services from OSM. Includes banks, ATMs, post offices, money transfer agents, and microfinance branches tagged via `amenity`. Useful for financial-inclusion mapping, cash-distribution planning, and economic analysis.
+        Financial services: banks, ATMs, post offices, money transfer agents, and microfinance branches tagged via `amenity`. Useful for financial-inclusion mapping, cash-distribution planning, and economic analysis.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [economics, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -375,13 +375,13 @@ categories:
     hdx:
       title: Airports
       notes: |
-        Airports and aviation infrastructure from OSM. Includes airports, heliports, helipads, runways, terminals, and emergency landing sites tagged via `aeroway`, `building`, or `emergency`. Useful for logistics, evacuation routing, and aerial-response planning.
+        Airports and aviation infrastructure: airports, heliports, helipads, runways, terminals, and emergency landing sites tagged via `aeroway`, `building`, or `emergency`. Useful for logistics, evacuation routing, and aerial-response planning.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:aeroway](https://wiki.openstreetmap.org/wiki/Key:aeroway), [Key:building](https://wiki.openstreetmap.org/wiki/Key:building), [Key:emergency](https://wiki.openstreetmap.org/wiki/Key:emergency)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [aeroway](https://wiki.openstreetmap.org/wiki/Key:aeroway), [building](https://wiki.openstreetmap.org/wiki/Key:building), [emergency](https://wiki.openstreetmap.org/wiki/Key:emergency)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [aviation, facilities-infrastructure, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -423,13 +423,13 @@ categories:
     hdx:
       title: Sea Ports
       notes: |
-        Sea ports and ferry terminals from OSM, tagged via `amenity`, `building`, or `port`. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
+        Sea ports and ferry terminals tagged via `amenity`, `building`, or `port`. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [Key:building](https://wiki.openstreetmap.org/wiki/Key:building), [Key:port](https://wiki.openstreetmap.org/wiki/Key:port)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building), [port](https://wiki.openstreetmap.org/wiki/Key:port)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, ports]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -468,13 +468,13 @@ categories:
     hdx:
       title: Points of Interest
       notes: |
-        Points of interest from OSM. Includes public-facing amenities, shops, tourist attractions, and landmarks tagged via `amenity`, `shop`, `tourism`, or `man_made`. Useful for general POI reference, urban analysis, and basemap detail.
+        Points of interest: public-facing amenities, shops, tourist attractions, and landmarks tagged via `amenity`, `shop`, `tourism`, or `man_made`. Useful for general POI reference, urban analysis, and basemap detail.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [Key:shop](https://wiki.openstreetmap.org/wiki/Key:shop), [Key:tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [Key:man_made](https://wiki.openstreetmap.org/wiki/Key:man_made)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [shop](https://wiki.openstreetmap.org/wiki/Key:shop), [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [man_made](https://wiki.openstreetmap.org/wiki/Key:man_made)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, points of interest-poi]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -519,13 +519,13 @@ categories:
     hdx:
       title: Cultural Places
       notes: |
-        Cultural and historic places from OSM. Includes museums, galleries, theatres, places of worship, monuments, and historic sites tagged via `tourism`, `amenity`, `historic`, or `heritage`. Useful for heritage protection, cultural mapping, and tourism context.
+        Cultural and historic places: museums, galleries, theatres, places of worship, monuments, and historic sites tagged via `tourism`, `amenity`, `historic`, or `heritage`. Useful for heritage protection, cultural mapping, and tourism context.
 
-        OpenStreetMap is a free, collaborative world map built by volunteers. Completeness varies by region based on where contributors are active: urban areas are usually well-mapped, remote areas may be incomplete. Cross-check critical decisions with local field knowledge.
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
-        - Source: [OpenStreetMap](https://www.openstreetmap.org)
-        - OSM tags: [Key:tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [Key:amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [Key:historic](https://wiki.openstreetmap.org/wiki/Key:historic), [Key:heritage](https://wiki.openstreetmap.org/wiki/Key:heritage)
-        - Part of many  [exports grid on HDX](https://data.humdata.org/organization/hot) by the [HOT](https://www.hotosm.org/en/)
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [historic](https://wiki.openstreetmap.org/wiki/Key:historic), [heritage](https://wiki.openstreetmap.org/wiki/Key:heritage)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, points of interest-poi]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
