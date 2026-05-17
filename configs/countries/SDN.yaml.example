@@ -1,0 +1,15 @@
+dataset_name: Republic of the Sudan
+
+boundary:
+  buffer_meters: 5000
+  geom: |
+    {
+      "type": "Polygon",
+      "coordinates": [[[21.81, 8.69], [38.58, 8.69], [38.58, 22.22], [21.81, 22.22], [21.81, 8.69]]]
+    }
+
+source:
+  osm:
+    engine: planet
+    pbf_path: /data/planet/planet-latest.osm.pbf
+    auto_download_planet: false
