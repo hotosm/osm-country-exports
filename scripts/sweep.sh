@@ -1,37 +1,47 @@
 #!/usr/bin/env bash
-# Sweep oex over scripts/countries.yaml.
+# Sweep oex over scripts/countries.yaml. Run from the repo root.
 #
 # Usage:
-#   ./scripts/sweep.sh                 all groups in order
-#   ./scripts/sweep.sh priority        one named group
-set -uo pipefail
+#   scripts/sweep.sh                  every country (priority -> normal -> big)
+#   scripts/sweep.sh priority         one ordering group
+#   scripts/sweep.sh daily            one cron cadence
+set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$REPO_ROOT"
+group="${1:-all}"
 
-BASE_CONFIG="${OEX_BASE_CONFIG:-configs/base.yaml}"
-GROUP="${1:-all}"
+if ! iso3_raw=$(scripts/list_countries.py "$group"); then
+    echo "sweep: list_countries.py $group failed" >&2
+    exit 2
+fi
 
-mapfile -t ISO3_LIST < <(scripts/list_countries.py "$GROUP")
-TOTAL="${#ISO3_LIST[@]}"
+if [ -z "$iso3_raw" ]; then
+    echo "sweep: group=$group empty, nothing to do"
+    exit 0
+fi
 
-echo "Sweep: group=$GROUP  countries=$TOTAL  base=$BASE_CONFIG"
+mapfile -t iso3_list <<< "$iso3_raw"
+total=${#iso3_list[@]}
 
+echo "sweep: group=$group countries=$total"
+
+failures=0
 idx=0
-for iso in "${ISO3_LIST[@]}"; do
+for iso in "${iso3_list[@]}"; do
     idx=$((idx + 1))
     override="configs/countries/${iso}.yaml"
-    config="$BASE_CONFIG"
+    config="configs/base.yaml"
     [ -f "$override" ] && config="$override"
 
-    echo
-    echo "----------------------------------------------------------------"
-    echo "[$idx/$TOTAL] $iso  config=$config  $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "----------------------------------------------------------------"
-
-    uv run oex-cli osm --config "$config" --iso3 "$iso"
-    echo "[$idx/$TOTAL] $iso exit=$?"
+    echo "[$idx/$total] $iso config=$config"
+    if ! uv run oex-cli osm --config "$config" --iso3 "$iso"; then
+        echo "[$idx/$total] $iso FAILED" >&2
+        failures=$((failures + 1))
+    fi
 done
 
-echo
-echo "Sweep complete at $(date '+%Y-%m-%d %H:%M:%S')"
+if [ "$failures" -gt 0 ]; then
+    echo "sweep: $failures/$total failed" >&2
+    exit 1
+fi
+
+echo "sweep: complete $total/$total"
