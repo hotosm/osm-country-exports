@@ -233,7 +233,7 @@ normal:
     ZWE: weekly
 
 big:
-  enabled: true
+  enabled: false
   countries:
     AGO: monthly
     ARG: monthly
