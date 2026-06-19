@@ -1,22 +1,29 @@
 # systemd install
 
-Units assume the repo lives at `/opt/osm-country-exports` and runs as user
-`oex`. Edit `WorkingDirectory=`, `EnvironmentFile=`, and `User=`/`Group=` in
-`osm-country-exports@.service` if you deploy elsewhere.
+Templated service + three timers (daily/weekly/monthly), each runs `sweep.sh %i`.
+Cadence on/off lives in `scripts/countries.yaml` (`schedule.<name>.enabled`); a
+disabled tick is a no-op.
 
-One templated service takes the sweep group as its instance (`%i`). Three
-timer files schedule the daily / weekly / monthly cadences. The cadence
-on/off switch lives in `scripts/countries.yaml` (`schedule.<name>.enabled`)
-so timers can stay permanently enabled; flipping `enabled: false` makes the
-tick a clean no-op (skip log, exit 0).
+## Prerequisites
 
-Default fire times (staggered to avoid Sun-1st-of-month collisions):
+Runs as `oex` from `/opt/osm-country-exports`. Edit the unit if elsewhere.
 
-| timer    | OnCalendar              |
-|----------|-------------------------|
-| daily    | `*-*-* 02:00:00`        |
-| weekly   | `Mon *-*-* 03:00:00`    |
-| monthly  | `*-*-01 04:00:00`       |
+```bash
+sudo useradd -m -U -s /bin/bash oex
+sudo git clone https://github.com/hotosm/osm-country-exports.git /opt/osm-country-exports
+sudo chown -R oex:oex /opt/osm-country-exports
+
+sudo -u oex bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
+sudo ln -s /home/oex/.local/bin/uv /usr/local/bin/uv
+
+sudo -u oex bash -c 'cd /opt/osm-country-exports && uv sync'
+```
+
+Place your `.env` (HDX token, S3 keys, ...) at `/opt/osm-country-exports/.env`,
+owned by `oex`, mode 600. AWS SSO host: `sudo -u oex aws sso login --profile admin`
+before first tick.
+
+Sanity check: `sudo -u oex bash -c 'cd /opt/osm-country-exports && uv run oex-cli --help'`
 
 ## Install
 
@@ -24,38 +31,51 @@ Default fire times (staggered to avoid Sun-1st-of-month collisions):
 sudo cp systemd/osm-country-exports@.service /etc/systemd/system/
 sudo cp systemd/osm-country-exports@{daily,weekly,monthly}.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now osm-country-exports@daily.timer \
-                            osm-country-exports@weekly.timer \
-                            osm-country-exports@monthly.timer
+sudo systemctl enable --now osm-country-exports@{daily,weekly,monthly}.timer
 ```
 
 ## Inspect
 
 ```bash
-systemctl list-timers 'osm-country-exports@*'
-systemctl status osm-country-exports@daily.service
-journalctl -fu 'osm-country-exports@*'
+systemctl list-timers 'osm-country-exports@*'                                 # next fire times
+journalctl -fu 'osm-country-exports@*'                              #logs
+journalctl -f -u osm-country-exports@monthly.service
+systemctl status osm-country-exports@monthly.service                            
 ```
 
-## Run ad-hoc
+## Ad-hoc
 
 ```bash
-sudo systemctl start osm-country-exports@daily.service       # one cadence
-sudo systemctl start osm-country-exports@priority.service    # one ordering group
-sudo systemctl start osm-country-exports@all.service         # full sweep
+sudo systemctl start osm-country-exports@daily.service     # any group sweep.sh accepts (daily/weekly/monthly/priority/normal/big/all)
 ```
 
-`%i` is passed straight to `sweep.sh`, so any group name `list_countries.py`
-understands works as an instance.
-
-## Host setup
+Or bypass systemd entirely:
 
 ```bash
-sudo useradd -m -s /bin/bash oex
-sudo chown -R oex:oex /opt/osm-country-exports
-sudo -u oex bash -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
-sudo ln -s /home/oex/.local/bin/uv /usr/local/bin/uv
+sudo -u oex bash -c 'cd /opt/osm-country-exports && scripts/sweep.sh daily'
 ```
 
-If the host uses AWS SSO, `aws sso login --profile admin` as the `oex` user
-before the next timer tick so `~oex/.aws/sso/cache` is warm.
+## Maintain
+
+Update repo and deps:
+
+```bash
+sudo -u oex bash -c 'cd /opt/osm-country-exports && git pull && uv sync'
+```
+
+Unit-file changes (anything under `systemd/`): re-cp, then
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart osm-country-exports@{daily,weekly,monthly}.timer
+```
+
+Toggle a cadence without touching systemd: flip `schedule.<name>.enabled` in
+`scripts/countries.yaml`. The script re-reads on every tick; a disabled tick
+logs a skip line and exits 0.
+
+Stop everything:
+
+```bash
+sudo systemctl disable --now osm-country-exports@{daily,weekly,monthly}.timer
+```
