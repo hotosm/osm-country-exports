@@ -71,13 +71,8 @@ systemctl status osm-country-exports@monthly.service
 ## Ad-hoc
 
 ```bash
-sudo systemctl start osm-country-exports@daily.service     # any group sweep.sh accepts (daily/weekly/monthly/priority/normal/big/all)
-```
-
-Or bypass systemd entirely:
-
-```bash
-sudo -u oex bash -c 'cd /opt/osm-country-exports && scripts/sweep.sh daily'
+sudo systemctl start osm-country-exports@daily.service     # cadence or group via systemd
+sudo -u oex bash -c 'cd /opt/osm-country-exports && uv run oex-cli osm --config configs/base.yaml --iso3 NPL'   # one country
 ```
 
 ## Maintain
