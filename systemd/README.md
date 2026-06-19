@@ -1,8 +1,10 @@
 # systemd install
 
-Templated service + three timers (daily/weekly/monthly), each runs `sweep.sh %i`.
-Cadence on/off lives in `scripts/countries.yaml` (`schedule.<name>.enabled`); a
-disabled tick is a no-op.
+Templated service + three timers (daily/weekly/monthly). Each timer fires
+only the countries tagged for its cadence in `scripts/countries.yaml`. Order
+within a tick is always priority -> normal -> big. To move a country between
+cadences, change its one-word cadence tag. To skip a whole group, flip its
+`enabled` flag.
 
 ## Prerequisites
 
@@ -93,9 +95,9 @@ sudo systemctl daemon-reload
 sudo systemctl restart osm-country-exports@{daily,weekly,monthly}.timer
 ```
 
-Toggle a cadence without touching systemd: flip `schedule.<name>.enabled` in
-`scripts/countries.yaml`. The script re-reads on every tick; a disabled tick
-logs a skip line and exits 0.
+Toggle a group without touching systemd: flip `<group>.enabled` in
+`scripts/countries.yaml`. The script re-reads on every tick; a disabled
+group is silently skipped (stderr line per disabled group).
 
 Stop everything:
 

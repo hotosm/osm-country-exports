@@ -1,272 +1,269 @@
-# Each country carries two tags:
-#   group:     priority | normal | big
-#              Sweep ordering only. priority runs first, big last (so an
-#              early failure on a big country doesn't burn hours).
-#   schedule:  daily | weekly | monthly
-#              Cron cadence. Each cron tick runs only its cadence.
+# Sweep order is hardcoded: priority -> normal -> big.
+# Each group has an enabled flag (skip the whole group) and a country map.
+# Each country maps to a cadence: daily | weekly | monthly.
 #
-# schedule.<name>.enabled flips a cadence off without touching cron;
-# the sweep then prints a skip line and exits 0.
+# Move a country between cadences: edit its cadence value.
+# Move a country between groups:   cut its line, paste into another section.
 #
 # Override one country's export by dropping configs/countries/<ISO3>.yaml.
 # Enumerates every ISO3 from pycountry except ATA.
 
-schedule:
-  daily:   { enabled: true }
-  weekly:  { enabled: true }
-  monthly: { enabled: true }
+priority:
+  enabled: true
+  countries:
+    AFG: daily
+    BFA: daily
+    BGD: daily
+    CAF: daily
+    CMR: daily
+    COD: daily
+    COL: daily
+    ETH: daily
+    HTI: daily
+    KEN: daily
+    LBN: daily
+    MDG: daily
+    MLI: daily
+    MMR: daily
+    MOZ: daily
+    NER: daily
+    NGA: daily
+    PSE: daily
+    SDN: daily
+    SOM: daily
+    SSD: daily
+    SYR: daily
+    TCD: daily
+    UGA: daily
+    UKR: daily
+    VEN: daily
+    YEM: daily
 
-countries:
-  # priority -> daily
-  AFG: { group: priority, schedule: daily   }
-  BFA: { group: priority, schedule: daily   }
-  BGD: { group: priority, schedule: daily   }
-  CAF: { group: priority, schedule: daily   }
-  CMR: { group: priority, schedule: daily   }
-  COD: { group: priority, schedule: daily   }
-  COL: { group: priority, schedule: daily   }
-  ETH: { group: priority, schedule: daily   }
-  HTI: { group: priority, schedule: daily   }
-  KEN: { group: priority, schedule: daily   }
-  LBN: { group: priority, schedule: daily   }
-  MDG: { group: priority, schedule: daily   }
-  MLI: { group: priority, schedule: daily   }
-  MMR: { group: priority, schedule: daily   }
-  MOZ: { group: priority, schedule: daily   }
-  NER: { group: priority, schedule: daily   }
-  NGA: { group: priority, schedule: daily   }
-  PSE: { group: priority, schedule: daily   }
-  SDN: { group: priority, schedule: daily   }
-  SOM: { group: priority, schedule: daily   }
-  SSD: { group: priority, schedule: daily   }
-  SYR: { group: priority, schedule: daily   }
-  TCD: { group: priority, schedule: daily   }
-  UGA: { group: priority, schedule: daily   }
-  UKR: { group: priority, schedule: daily   }
-  VEN: { group: priority, schedule: daily   }
-  YEM: { group: priority, schedule: daily   }
+normal:
+  enabled: true
+  countries:
+    ABW: weekly
+    AIA: weekly
+    ALA: weekly
+    ALB: weekly
+    AND: weekly
+    ARE: weekly
+    ARM: weekly
+    ASM: weekly
+    ATF: weekly
+    ATG: weekly
+    AUT: weekly
+    AZE: weekly
+    BDI: weekly
+    BEL: weekly
+    BEN: weekly
+    BES: weekly
+    BGR: weekly
+    BHR: weekly
+    BHS: weekly
+    BIH: weekly
+    BLM: weekly
+    BLR: weekly
+    BLZ: weekly
+    BMU: weekly
+    BRB: weekly
+    BRN: weekly
+    BTN: weekly
+    BVT: weekly
+    BWA: weekly
+    CCK: weekly
+    CHE: weekly
+    CHL: weekly
+    CIV: weekly
+    COG: weekly
+    COK: weekly
+    COM: weekly
+    CPV: weekly
+    CRI: weekly
+    CUB: weekly
+    CUW: weekly
+    CXR: weekly
+    CYM: weekly
+    CYP: weekly
+    CZE: weekly
+    DJI: weekly
+    DMA: weekly
+    DNK: weekly
+    DOM: weekly
+    ECU: weekly
+    ERI: weekly
+    ESH: weekly
+    EST: weekly
+    FIN: weekly
+    FJI: weekly
+    FLK: weekly
+    FRO: weekly
+    FSM: weekly
+    GAB: weekly
+    GEO: weekly
+    GGY: weekly
+    GHA: weekly
+    GIB: weekly
+    GIN: weekly
+    GLP: weekly
+    GMB: weekly
+    GNB: weekly
+    GNQ: weekly
+    GRC: weekly
+    GRD: weekly
+    GRL: weekly
+    GTM: weekly
+    GUF: weekly
+    GUM: weekly
+    GUY: weekly
+    HKG: weekly
+    HMD: weekly
+    HND: weekly
+    HRV: weekly
+    HUN: weekly
+    IMN: weekly
+    IOT: weekly
+    IRL: weekly
+    IRQ: weekly
+    ISL: weekly
+    ISR: weekly
+    JAM: weekly
+    JEY: weekly
+    JOR: weekly
+    KGZ: weekly
+    KHM: weekly
+    KIR: weekly
+    KNA: weekly
+    KOR: weekly
+    KWT: weekly
+    LAO: weekly
+    LBR: weekly
+    LBY: weekly
+    LCA: weekly
+    LIE: weekly
+    LKA: weekly
+    LSO: weekly
+    LTU: weekly
+    LUX: weekly
+    LVA: weekly
+    MAC: weekly
+    MAF: weekly
+    MCO: weekly
+    MDA: weekly
+    MDV: weekly
+    MHL: weekly
+    MKD: weekly
+    MLT: weekly
+    MNE: weekly
+    MNG: weekly
+    MNP: weekly
+    MRT: weekly
+    MSR: weekly
+    MTQ: weekly
+    MUS: weekly
+    MWI: weekly
+    MYS: weekly
+    MYT: weekly
+    NAM: weekly
+    NCL: weekly
+    NFK: weekly
+    NIC: weekly
+    NIU: weekly
+    NLD: weekly
+    NOR: weekly
+    NPL: weekly
+    NRU: weekly
+    NZL: weekly
+    OMN: weekly
+    PAN: weekly
+    PCN: weekly
+    PLW: weekly
+    PNG: weekly
+    PRI: weekly
+    PRK: weekly
+    PRT: weekly
+    PRY: weekly
+    PYF: weekly
+    QAT: weekly
+    REU: weekly
+    ROU: weekly
+    RWA: weekly
+    SEN: weekly
+    SGP: weekly
+    SGS: weekly
+    SHN: weekly
+    SJM: weekly
+    SLB: weekly
+    SLE: weekly
+    SLV: weekly
+    SMR: weekly
+    SPM: weekly
+    SRB: weekly
+    STP: weekly
+    SUR: weekly
+    SVK: weekly
+    SVN: weekly
+    SWE: weekly
+    SWZ: weekly
+    SXM: weekly
+    SYC: weekly
+    TCA: weekly
+    TGO: weekly
+    TJK: weekly
+    TKL: weekly
+    TKM: weekly
+    TLS: weekly
+    TON: weekly
+    TTO: weekly
+    TUN: weekly
+    TUV: weekly
+    TWN: weekly
+    TZA: weekly
+    UMI: weekly
+    URY: weekly
+    UZB: weekly
+    VAT: weekly
+    VCT: weekly
+    VGB: weekly
+    VIR: weekly
+    VUT: weekly
+    WLF: weekly
+    WSM: weekly
+    ZMB: weekly
+    ZWE: weekly
 
-  # normal -> weekly
-  ABW: { group: normal  , schedule: weekly  }
-  AIA: { group: normal  , schedule: weekly  }
-  ALA: { group: normal  , schedule: weekly  }
-  ALB: { group: normal  , schedule: weekly  }
-  AND: { group: normal  , schedule: weekly  }
-  ARE: { group: normal  , schedule: weekly  }
-  ARM: { group: normal  , schedule: weekly  }
-  ASM: { group: normal  , schedule: weekly  }
-  ATF: { group: normal  , schedule: weekly  }
-  ATG: { group: normal  , schedule: weekly  }
-  AUT: { group: normal  , schedule: weekly  }
-  AZE: { group: normal  , schedule: weekly  }
-  BDI: { group: normal  , schedule: weekly  }
-  BEL: { group: normal  , schedule: weekly  }
-  BEN: { group: normal  , schedule: weekly  }
-  BES: { group: normal  , schedule: weekly  }
-  BGR: { group: normal  , schedule: weekly  }
-  BHR: { group: normal  , schedule: weekly  }
-  BHS: { group: normal  , schedule: weekly  }
-  BIH: { group: normal  , schedule: weekly  }
-  BLM: { group: normal  , schedule: weekly  }
-  BLR: { group: normal  , schedule: weekly  }
-  BLZ: { group: normal  , schedule: weekly  }
-  BMU: { group: normal  , schedule: weekly  }
-  BRB: { group: normal  , schedule: weekly  }
-  BRN: { group: normal  , schedule: weekly  }
-  BTN: { group: normal  , schedule: weekly  }
-  BVT: { group: normal  , schedule: weekly  }
-  BWA: { group: normal  , schedule: weekly  }
-  CCK: { group: normal  , schedule: weekly  }
-  CHE: { group: normal  , schedule: weekly  }
-  CHL: { group: normal  , schedule: weekly  }
-  CIV: { group: normal  , schedule: weekly  }
-  COG: { group: normal  , schedule: weekly  }
-  COK: { group: normal  , schedule: weekly  }
-  COM: { group: normal  , schedule: weekly  }
-  CPV: { group: normal  , schedule: weekly  }
-  CRI: { group: normal  , schedule: weekly  }
-  CUB: { group: normal  , schedule: weekly  }
-  CUW: { group: normal  , schedule: weekly  }
-  CXR: { group: normal  , schedule: weekly  }
-  CYM: { group: normal  , schedule: weekly  }
-  CYP: { group: normal  , schedule: weekly  }
-  CZE: { group: normal  , schedule: weekly  }
-  DJI: { group: normal  , schedule: weekly  }
-  DMA: { group: normal  , schedule: weekly  }
-  DNK: { group: normal  , schedule: weekly  }
-  DOM: { group: normal  , schedule: weekly  }
-  ECU: { group: normal  , schedule: weekly  }
-  ERI: { group: normal  , schedule: weekly  }
-  ESH: { group: normal  , schedule: weekly  }
-  EST: { group: normal  , schedule: weekly  }
-  FIN: { group: normal  , schedule: weekly  }
-  FJI: { group: normal  , schedule: weekly  }
-  FLK: { group: normal  , schedule: weekly  }
-  FRO: { group: normal  , schedule: weekly  }
-  FSM: { group: normal  , schedule: weekly  }
-  GAB: { group: normal  , schedule: weekly  }
-  GEO: { group: normal  , schedule: weekly  }
-  GGY: { group: normal  , schedule: weekly  }
-  GHA: { group: normal  , schedule: weekly  }
-  GIB: { group: normal  , schedule: weekly  }
-  GIN: { group: normal  , schedule: weekly  }
-  GLP: { group: normal  , schedule: weekly  }
-  GMB: { group: normal  , schedule: weekly  }
-  GNB: { group: normal  , schedule: weekly  }
-  GNQ: { group: normal  , schedule: weekly  }
-  GRC: { group: normal  , schedule: weekly  }
-  GRD: { group: normal  , schedule: weekly  }
-  GRL: { group: normal  , schedule: weekly  }
-  GTM: { group: normal  , schedule: weekly  }
-  GUF: { group: normal  , schedule: weekly  }
-  GUM: { group: normal  , schedule: weekly  }
-  GUY: { group: normal  , schedule: weekly  }
-  HKG: { group: normal  , schedule: weekly  }
-  HMD: { group: normal  , schedule: weekly  }
-  HND: { group: normal  , schedule: weekly  }
-  HRV: { group: normal  , schedule: weekly  }
-  HUN: { group: normal  , schedule: weekly  }
-  IMN: { group: normal  , schedule: weekly  }
-  IOT: { group: normal  , schedule: weekly  }
-  IRL: { group: normal  , schedule: weekly  }
-  IRQ: { group: normal  , schedule: weekly  }
-  ISL: { group: normal  , schedule: weekly  }
-  ISR: { group: normal  , schedule: weekly  }
-  JAM: { group: normal  , schedule: weekly  }
-  JEY: { group: normal  , schedule: weekly  }
-  JOR: { group: normal  , schedule: weekly  }
-  KGZ: { group: normal  , schedule: weekly  }
-  KHM: { group: normal  , schedule: weekly  }
-  KIR: { group: normal  , schedule: weekly  }
-  KNA: { group: normal  , schedule: weekly  }
-  KOR: { group: normal  , schedule: weekly  }
-  KWT: { group: normal  , schedule: weekly  }
-  LAO: { group: normal  , schedule: weekly  }
-  LBR: { group: normal  , schedule: weekly  }
-  LBY: { group: normal  , schedule: weekly  }
-  LCA: { group: normal  , schedule: weekly  }
-  LIE: { group: normal  , schedule: weekly  }
-  LKA: { group: normal  , schedule: weekly  }
-  LSO: { group: normal  , schedule: weekly  }
-  LTU: { group: normal  , schedule: weekly  }
-  LUX: { group: normal  , schedule: weekly  }
-  LVA: { group: normal  , schedule: weekly  }
-  MAC: { group: normal  , schedule: weekly  }
-  MAF: { group: normal  , schedule: weekly  }
-  MCO: { group: normal  , schedule: weekly  }
-  MDA: { group: normal  , schedule: weekly  }
-  MDV: { group: normal  , schedule: weekly  }
-  MHL: { group: normal  , schedule: weekly  }
-  MKD: { group: normal  , schedule: weekly  }
-  MLT: { group: normal  , schedule: weekly  }
-  MNE: { group: normal  , schedule: weekly  }
-  MNG: { group: normal  , schedule: weekly  }
-  MNP: { group: normal  , schedule: weekly  }
-  MRT: { group: normal  , schedule: weekly  }
-  MSR: { group: normal  , schedule: weekly  }
-  MTQ: { group: normal  , schedule: weekly  }
-  MUS: { group: normal  , schedule: weekly  }
-  MWI: { group: normal  , schedule: weekly  }
-  MYS: { group: normal  , schedule: weekly  }
-  MYT: { group: normal  , schedule: weekly  }
-  NAM: { group: normal  , schedule: weekly  }
-  NCL: { group: normal  , schedule: weekly  }
-  NFK: { group: normal  , schedule: weekly  }
-  NIC: { group: normal  , schedule: weekly  }
-  NIU: { group: normal  , schedule: weekly  }
-  NLD: { group: normal  , schedule: weekly  }
-  NOR: { group: normal  , schedule: weekly  }
-  NPL: { group: normal  , schedule: weekly  }
-  NRU: { group: normal  , schedule: weekly  }
-  NZL: { group: normal  , schedule: weekly  }
-  OMN: { group: normal  , schedule: weekly  }
-  PAN: { group: normal  , schedule: weekly  }
-  PCN: { group: normal  , schedule: weekly  }
-  PLW: { group: normal  , schedule: weekly  }
-  PNG: { group: normal  , schedule: weekly  }
-  PRI: { group: normal  , schedule: weekly  }
-  PRK: { group: normal  , schedule: weekly  }
-  PRT: { group: normal  , schedule: weekly  }
-  PRY: { group: normal  , schedule: weekly  }
-  PYF: { group: normal  , schedule: weekly  }
-  QAT: { group: normal  , schedule: weekly  }
-  REU: { group: normal  , schedule: weekly  }
-  ROU: { group: normal  , schedule: weekly  }
-  RWA: { group: normal  , schedule: weekly  }
-  SEN: { group: normal  , schedule: weekly  }
-  SGP: { group: normal  , schedule: weekly  }
-  SGS: { group: normal  , schedule: weekly  }
-  SHN: { group: normal  , schedule: weekly  }
-  SJM: { group: normal  , schedule: weekly  }
-  SLB: { group: normal  , schedule: weekly  }
-  SLE: { group: normal  , schedule: weekly  }
-  SLV: { group: normal  , schedule: weekly  }
-  SMR: { group: normal  , schedule: weekly  }
-  SPM: { group: normal  , schedule: weekly  }
-  SRB: { group: normal  , schedule: weekly  }
-  STP: { group: normal  , schedule: weekly  }
-  SUR: { group: normal  , schedule: weekly  }
-  SVK: { group: normal  , schedule: weekly  }
-  SVN: { group: normal  , schedule: weekly  }
-  SWE: { group: normal  , schedule: weekly  }
-  SWZ: { group: normal  , schedule: weekly  }
-  SXM: { group: normal  , schedule: weekly  }
-  SYC: { group: normal  , schedule: weekly  }
-  TCA: { group: normal  , schedule: weekly  }
-  TGO: { group: normal  , schedule: weekly  }
-  TJK: { group: normal  , schedule: weekly  }
-  TKL: { group: normal  , schedule: weekly  }
-  TKM: { group: normal  , schedule: weekly  }
-  TLS: { group: normal  , schedule: weekly  }
-  TON: { group: normal  , schedule: weekly  }
-  TTO: { group: normal  , schedule: weekly  }
-  TUN: { group: normal  , schedule: weekly  }
-  TUV: { group: normal  , schedule: weekly  }
-  TWN: { group: normal  , schedule: weekly  }
-  TZA: { group: normal  , schedule: weekly  }
-  UMI: { group: normal  , schedule: weekly  }
-  URY: { group: normal  , schedule: weekly  }
-  UZB: { group: normal  , schedule: weekly  }
-  VAT: { group: normal  , schedule: weekly  }
-  VCT: { group: normal  , schedule: weekly  }
-  VGB: { group: normal  , schedule: weekly  }
-  VIR: { group: normal  , schedule: weekly  }
-  VUT: { group: normal  , schedule: weekly  }
-  WLF: { group: normal  , schedule: weekly  }
-  WSM: { group: normal  , schedule: weekly  }
-  ZMB: { group: normal  , schedule: weekly  }
-  ZWE: { group: normal  , schedule: weekly  }
-
-  # big -> monthly
-  AGO: { group: big     , schedule: monthly }
-  ARG: { group: big     , schedule: monthly }
-  AUS: { group: big     , schedule: monthly }
-  BOL: { group: big     , schedule: monthly }
-  BRA: { group: big     , schedule: monthly }
-  CAN: { group: big     , schedule: monthly }
-  CHN: { group: big     , schedule: monthly }
-  DEU: { group: big     , schedule: monthly }
-  DZA: { group: big     , schedule: monthly }
-  EGY: { group: big     , schedule: monthly }
-  ESP: { group: big     , schedule: monthly }
-  FRA: { group: big     , schedule: monthly }
-  GBR: { group: big     , schedule: monthly }
-  IDN: { group: big     , schedule: monthly }
-  IND: { group: big     , schedule: monthly }
-  IRN: { group: big     , schedule: monthly }
-  ITA: { group: big     , schedule: monthly }
-  JPN: { group: big     , schedule: monthly }
-  KAZ: { group: big     , schedule: monthly }
-  MAR: { group: big     , schedule: monthly }
-  MEX: { group: big     , schedule: monthly }
-  PAK: { group: big     , schedule: monthly }
-  PER: { group: big     , schedule: monthly }
-  PHL: { group: big     , schedule: monthly }
-  POL: { group: big     , schedule: monthly }
-  RUS: { group: big     , schedule: monthly }
-  SAU: { group: big     , schedule: monthly }
-  THA: { group: big     , schedule: monthly }
-  TUR: { group: big     , schedule: monthly }
-  USA: { group: big     , schedule: monthly }
-  VNM: { group: big     , schedule: monthly }
-  ZAF: { group: big     , schedule: monthly }
+big:
+  enabled: true
+  countries:
+    AGO: monthly
+    ARG: monthly
+    AUS: monthly
+    BOL: monthly
+    BRA: monthly
+    CAN: monthly
+    CHN: monthly
+    DEU: monthly
+    DZA: monthly
+    EGY: monthly
+    ESP: monthly
+    FRA: monthly
+    GBR: monthly
+    IDN: monthly
+    IND: monthly
+    IRN: monthly
+    ITA: monthly
+    JPN: monthly
+    KAZ: monthly
+    MAR: monthly
+    MEX: monthly
+    PAK: monthly
+    PER: monthly
+    PHL: monthly
+    POL: monthly
+    RUS: monthly
+    SAU: monthly
+    THA: monthly
+    TUR: monthly
+    USA: monthly
+    VNM: monthly
+    ZAF: monthly
