@@ -15,8 +15,6 @@ For a cadence name, a disabled schedule prints a skip line to stderr and
 exits 0 with no output, so a cron-driven sweep becomes a no-op.
 """
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 
