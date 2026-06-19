@@ -10,7 +10,7 @@ boundary:
   buffer_meters: 0
 
 output:
-  dir: ./output
+  dir: ${oc.env:OEX_DATA_DIR,.}/output
   formats: [gpkg, shp]
   metadata: true
   resume: true
@@ -46,16 +46,16 @@ source:
   osm:
     enabled: true
     engine: geofabrik
-    cache_dir: data/osm
+    cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/osm
     snapshot: latest
     geofabrik_clip_to_boundary: true
     planet_fallback: true
-    pbf_path: data/osm/planet/planet-latest.osm.pbf
+    pbf_path: ${oc.env:OEX_DATA_DIR,.}/data/osm/planet/planet-latest.osm.pbf
     auto_download_planet: true
     keep_pbf: false
 
   pcodes:
     enabled: true
-    cache_dir: data/pcodes
+    cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/pcodes
     levels: [1, 2, 3, 4]
     boundary_resolution: geos
