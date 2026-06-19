@@ -47,9 +47,15 @@ Sanity check: `sudo -u oex bash -c 'cd /opt/osm-country-exports && uv run oex-cl
 ```bash
 sudo cp systemd/osm-country-exports@.service /etc/systemd/system/
 sudo cp systemd/osm-country-exports@{daily,weekly,monthly}.timer /etc/systemd/system/
+sudo cp systemd/osm-country-exports.tmpfiles.conf /etc/tmpfiles.d/
+sudo systemd-tmpfiles --create /etc/tmpfiles.d/osm-country-exports.tmpfiles.conf
 sudo systemctl daemon-reload
 sudo systemctl enable --now osm-country-exports@{daily,weekly,monthly}.timer
 ```
+
+`systemd-tmpfiles-clean.timer` (enabled by default) sweeps the data dirs
+daily and deletes anything older than 30 days. Edit
+`osm-country-exports.tmpfiles.conf` to change the retention or paths.
 
 ## Inspect
 
