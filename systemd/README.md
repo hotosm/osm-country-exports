@@ -19,9 +19,26 @@ sudo ln -s /home/oex/.local/bin/uv /usr/local/bin/uv
 sudo -u oex bash -c 'cd /opt/osm-country-exports && uv sync'
 ```
 
-Place your `.env` (HDX token, S3 keys, ...) at `/opt/osm-country-exports/.env`,
-owned by `oex`, mode 600. AWS SSO host: `sudo -u oex aws sso login --profile admin`
-before first tick.
+Data dir (planet PBF is ~80GB, do NOT leave on root). Point `OEX_DATA_DIR`
+at a large volume; `output/`, OSM cache, planet PBF, and pcodes cache all
+land underneath it.
+
+```bash
+sudo mkdir -p /mnt/disk/oex
+sudo chown oex:oex /mnt/disk/oex
+```
+
+Place your `.env` at `/opt/osm-country-exports/.env`, owned by `oex`, mode 600:
+
+```dotenv
+OEX_DATA_DIR=/mnt/disk/oex
+OEX_S3_BUCKET=...
+HDX_API_KEY=...
+HDX_OWNER_ORG=...
+HDX_MAINTAINER=...
+```
+
+AWS SSO host: `sudo -u oex aws sso login --profile admin` before first tick.
 
 Sanity check: `sudo -u oex bash -c 'cd /opt/osm-country-exports && uv run oex-cli --help'`
 
