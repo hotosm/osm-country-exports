@@ -25,8 +25,8 @@ output:
 
 parallel:
   enabled: true
-  threads: null
-  memory_gb: null
+  threads: 2
+  memory_gb: 7
 
 hdx:
   push: true
