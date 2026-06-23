@@ -578,7 +578,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "oex", specifier = ">=0.3.0" },
+    { name = "oex", specifier = ">=0.4.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
@@ -959,7 +959,7 @@ wheels = [
 
 [[package]]
 name = "oex"
-version = "0.3.0"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "babel" },
@@ -977,9 +977,9 @@ dependencies = [
     { name = "typer" },
     { name = "unidecode" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/24/7d/1ff4a84d124027134ec424255cf85670131356b48aa20eb50ba9045d8ace/oex-0.3.0.tar.gz", hash = "sha256:493b2d19f5de93b44be2f3b87136754f9e3ae3cb8c37849b7f25e203c43b12f5", size = 99889, upload-time = "2026-05-17T09:09:34.428Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/47/6e4833011662dfc770aade9cbea3df5b3ff19369cf16e51bb36f0b04a3ca/oex-0.4.1.tar.gz", hash = "sha256:0d84070fb2b438744d5f12358f7b7e9a0f1ef7fd1f330b93bcf9cd9565e551e1", size = 100930, upload-time = "2026-06-23T14:18:10.706Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/bd/8bb3f5ec365a2e3ca8c705dc98741e1baff4d442b68c40855355b69e174f/oex-0.3.0-py3-none-any.whl", hash = "sha256:e0956881d191805308e52718efaaa18e0257be9eb066af16f93698abc056fa9d", size = 86040, upload-time = "2026-05-17T09:09:33.424Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/36/a66f4e1c80e70804a00dcd19dfc6edebb131ae36b57ca3484b5fe53819be/oex-0.4.1-py3-none-any.whl", hash = "sha256:68ad5bdefcb708b3d04bdacf640f3763683f66076ec20a817c6fe907020a6317", size = 86452, upload-time = "2026-06-23T14:18:09.567Z" },
 ]
 
 [[package]]
