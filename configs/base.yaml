@@ -2,7 +2,7 @@ categories_file: configs/_hot-schema.yaml
 
 key: hotosm
 subnational: true
-frequency: yearly
+frequency: monthly
 
 boundary:
   geoboundaries_release: CGAZ
