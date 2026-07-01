@@ -5,6 +5,9 @@ The **Extract** script is designed to trigger extraction requests for countries 
 
 The **streamlit Visualizer** script is desinged to visualize the exports in tree structure for browsing, monitoring and downloading
 
+Full details on how everything works can be found
+[here](./docs/managing-hdx.md).
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
