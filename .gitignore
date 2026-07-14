@@ -1,4 +1,17 @@
+# Local secrets and runtime artefacts.
 .env
-result.json
-__pycache__/*
-env
+env/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# uv / venv
+.venv/
+.uv-cache/
+
+# oex runtime output
+output/
+data/

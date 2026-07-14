@@ -1,0 +1,92 @@
+# Event capture: Venezuela M 7.5 Earthquake response (GLIDE EQ-2026-000093-VEN).
+# Overture buildings only, clipped to the Caracas-area box (67.09W-66.65W, 10.28N-10.64N).
+# Standalone config: merges over oex bundled defaults, not configs/base.yaml.
+
+iso3: VEN
+key: hot_overture
+subnational: false
+frequency: as needed
+
+boundary:
+  geom: '{"type":"Polygon","coordinates":[[[-67.0880140686,10.28249265276],[-66.65405410767,10.28249265276],[-66.65405410767,10.64306414992],[-67.0880140686,10.64306414992],[-67.0880140686,10.28249265276]]]}'
+  buffer_meters: 0
+
+output:
+  dir: ${oc.env:OEX_DATA_DIR,.}/output
+  formats: [gpkg,kml,shp]
+  metadata: true
+  resume: true
+  report:
+    enabled: true
+  s3:
+    enabled: true
+    bucket: ${oc.env:OEX_S3_BUCKET}
+    prefix: ISO3
+    region: us-east-1
+    acl: public-read
+
+parallel:
+  enabled: true
+  threads: 2
+  memory_gb: 7
+
+source:
+  overture:
+    enabled: true
+    release: latest
+  osm:
+    enabled: false
+  pcodes:
+    enabled: true
+
+hdx:
+  push: true
+  site: prod
+  api_key: ${oc.env:HDX_API_KEY}
+  owner_org: ${oc.env:HDX_OWNER_ORG}
+  maintainer: ${oc.env:HDX_MAINTAINER}
+  user_agent: osm-country-exports/0.1
+  methodology: Other
+  methodology_other: Open Source Geographic information
+  purge_existing_resources: false
+  title_template: "{category} - Venezuela Caracas (Overture)"
+
+categories:
+  - name: buildings
+    skip_pcodes: false
+    boundary_resolution: h3_neighbor
+    hdx:
+      title: Buildings
+      notes: |
+        Building footprints for the Caracas area of Venezuela
+        (bounding box 67.09W-66.65W, 10.28N-10.64N),
+
+        Sourced from Overture Maps (buildings theme: OpenStreetMap, Microsoft, Google, Esri).
+
+        Event: M 7.5 Earthquake, west of Caracas.
+
+        - Source: [Overture Maps](https://overturemaps.org/)
+        - Part of HOT disaster response exports on HDX by [HOT](https://www.hotosm.org/)
+      tags: [earthquake-tsunami, damage assessment, facilities-infrastructure, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: |
+        Data is sourced directly from Overture and much of it is AI-generated; please verify Overture's usage guidelines before use.
+      dataset_source: Overture Maps (buildings theme)
+    overture:
+      enabled: true
+      theme: buildings
+      feature_type: building
+      select:
+        - id
+        - names.primary AS name
+        - names.common->>'en' AS name_en
+        - class
+        - subtype
+        - height
+        - level
+        - num_floors
+        - sources[1].dataset AS source
+      where: []
+    osm:
+      enabled: false

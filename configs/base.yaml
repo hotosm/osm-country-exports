@@ -1,0 +1,61 @@
+categories_file: configs/_hot-schema.yaml
+
+key: hotosm
+subnational: true
+frequency: monthly
+
+boundary:
+  geoboundaries_release: CGAZ
+  geoboundaries_level: ADM0
+  buffer_meters: 0
+
+output:
+  dir: ${oc.env:OEX_DATA_DIR,.}/output
+  formats: [gpkg, shp]
+  metadata: true
+  resume: true
+  report:
+    enabled: true
+  s3:
+    enabled: true
+    bucket: ${oc.env:OEX_S3_BUCKET}
+    prefix: ISO3
+    region: us-east-1
+    acl: public-read
+
+parallel:
+  enabled: true
+  threads: 2
+  memory_gb: 7
+
+hdx:
+  push: true
+  site: prod
+  api_key: ${oc.env:HDX_API_KEY}
+  owner_org: ${oc.env:HDX_OWNER_ORG}
+  maintainer: ${oc.env:HDX_MAINTAINER}
+  user_agent: osm-country-exports/0.1
+  methodology: Other
+  methodology_other: Open Source Geographic information
+  purge_existing_resources: false
+
+source:
+  overture:
+    enabled: false
+
+  osm:
+    enabled: true
+    engine: geofabrik
+    cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/osm
+    snapshot: latest
+    geofabrik_clip_to_boundary: true
+    planet_fallback: true
+    pbf_path: ${oc.env:OEX_DATA_DIR,.}/data/osm/planet/planet-latest.osm.pbf
+    auto_download_planet: true
+    keep_pbf: false
+
+  pcodes:
+    enabled: true
+    cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/pcodes
+    levels: [1, 2, 3, 4]
+    boundary_resolution: geos

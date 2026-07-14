@@ -1,0 +1,19 @@
+[Unit]
+Description=HOT OSM country exports sweep (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=oex
+Group=oex
+WorkingDirectory=/opt/osm-country-exports
+EnvironmentFile=/opt/osm-country-exports/.env
+ExecStart=/opt/osm-country-exports/scripts/sweep.sh %i
+TimeoutStartSec=0
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+[Install]
+WantedBy=multi-user.target
