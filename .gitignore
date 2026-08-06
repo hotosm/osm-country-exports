@@ -15,3 +15,14 @@ __pycache__/
 # oex runtime output
 output/
 data/
+
+# sweep lock and merged per-country configs
+.sweep/
+
+# Tasking Manager configs, generated per run by scripts/tm_configs.py
+configs/tasking_manager/*.yaml
+configs/tasking_manager_sandbox/*.yaml
+
+# per-project PBFs cut by tm_configs.py --extract
+data/tm/
+data/tm_sandbox/

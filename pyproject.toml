@@ -3,10 +3,17 @@ name = "hotosm-country-exports"
 version = "0.0.1"
 description = "HOT OSM country-scale HDX exports."
 requires-python = ">=3.11"
-dependencies = ["oex>=0.4.1", "pyyaml>=6.0.2"]
+dependencies = [
+    "oex>=0.4.7",
+    "omegaconf>=2.3.0",
+    "pyyaml>=6.0.2",
+]
 
 [dependency-groups]
-dev = ["ruff>=0.13"]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.13",
+]
 
 [tool.ruff]
 line-length = 100
@@ -14,3 +21,4 @@ target-version = "py311"
 
 [tool.uv]
 package = false
+

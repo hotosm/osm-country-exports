@@ -1,10 +1,14 @@
 # systemd install
 
-Templated service + three timers (daily/weekly/monthly). Each timer fires
-only the countries tagged for its cadence in `scripts/countries.yaml`. Order
-within a tick is always priority -> normal -> big. To move a country between
-cadences, change its one-word cadence tag. To skip a whole group, flip its
-`enabled` flag.
+Templated service + three timers (daily/weekly/monthly). The timer name is
+passed through as `--frequency`, so each timer fires only the jobs tagged for
+it in `scripts/schedule.yaml`. Order within a tick follows the `groups:` list.
+To move a job between timers, change its one-word frequency. To skip a whole
+group, flip its `enabled` flag.
+
+A sweep takes a lock, so an overrunning tick refuses to overlap the next one
+instead of racing it for the planet PBF, the output dir and the HDX datasets.
+It exits 3 when that happens, which shows as a failed unit.
 
 ## Prerequisites
 
@@ -71,7 +75,9 @@ systemctl status osm-country-exports@monthly.service
 ## Ad-hoc
 
 ```bash
-sudo systemctl start osm-country-exports@daily.service     # cadence or group via systemd
+sudo systemctl start osm-country-exports@daily.service     # one frequency via systemd
+sudo -u oex bash -c 'cd /opt/osm-country-exports && ./scripts/sweep.py --group priority --frequency monthly'
+sudo -u oex bash -c 'cd /opt/osm-country-exports && ./scripts/sweep.py --dry-run'   # what would run
 sudo -u oex bash -c 'cd /opt/osm-country-exports && uv run oex-cli osm --config configs/base.yaml --iso3 NPL'   # one country
 ```
 
@@ -91,8 +97,8 @@ sudo systemctl restart osm-country-exports@{daily,weekly,monthly}.timer
 ```
 
 Toggle a group without touching systemd: flip `<group>.enabled` in
-`scripts/countries.yaml`. The script re-reads on every tick; a disabled
-group is silently skipped (stderr line per disabled group).
+`scripts/schedule.yaml`. The script re-reads on every tick and prints a line
+naming each group or job it skipped and why.
 
 Stop everything:
 

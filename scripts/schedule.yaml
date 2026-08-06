@@ -1,12 +1,23 @@
-# Sweep order is hardcoded: priority -> normal -> big.
-# Each group has an enabled flag (skip the whole group) and a country map.
-# Each country maps to a cadence: daily | weekly | monthly.
+# What runs, and when.
 #
-# Move a country between cadences: edit its cadence value.
-# Move a country between groups:   cut its line, paste into another section.
+# groups:  run order. Position in the list is priority.
 #
-# Override one country's export by dropping configs/countries/<ISO3>.yaml.
-# Enumerates every ISO3 from pycountry except ATA.
+# A group holds one job source:
+#   countries:  ISO3 -> frequency. Config is configs/countries/<ISO3>.yaml merged
+#               over configs/base.yaml, or configs/base.yaml alone.
+#   dir:        a folder of standalone configs, one job per file. Frequency comes
+#               from each config's own `frequency:` field, falling back to the
+#               group's `frequency:`.
+#
+# Any value is either a bare frequency or a mapping of frequency / enabled / expires:
+#   AFG: monthly
+#   YEM: {frequency: monthly, enabled: false}
+#   SDN: {frequency: monthly, expires: 2026-12-31}
+#
+# `frequency: as needed` never runs on a schedule. Run those by hand with
+# --frequency "as needed". An expired or disabled job is skipped and says so.
+
+groups: [priority, normal, heavy, events, tasking_manager, tasking_manager_sandbox]
 
 priority:
   enabled: true
@@ -232,7 +243,7 @@ normal:
     ZMB: monthly
     ZWE: monthly
 
-big:
+heavy:
   enabled: true
   countries:
     AGO: monthly
@@ -267,3 +278,25 @@ big:
     USA: monthly
     VNM: monthly
     ZAF: monthly
+
+events:
+  enabled: true
+  dir: configs/events
+  frequency: monthly
+  # Per-file overrides, keyed by filename:
+  # overrides:
+  #   VEN-EQ-2026-000093.yaml: {frequency: daily, expires: 2026-09-30}
+  #   VEN-EQ-2026-000093-osm.yaml: {enabled: false}
+
+# Tasking Manager projects. Both dirs are filled by scripts/tm_configs.py before
+# the sweep runs; the configs themselves are generated, not committed.
+
+tasking_manager:
+  enabled: true
+  dir: configs/tasking_manager
+  frequency: daily
+
+tasking_manager_sandbox:
+  enabled: true
+  dir: configs/tasking_manager_sandbox
+  frequency: daily
