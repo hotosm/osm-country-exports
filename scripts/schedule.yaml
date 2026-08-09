@@ -54,6 +54,7 @@ normal:
   enabled: true
   countries:
     ABW: monthly
+    ATA: monthly
     AIA: monthly
     ALA: monthly
     ALB: monthly
@@ -240,44 +241,45 @@ normal:
     VUT: monthly
     WLF: monthly
     WSM: monthly
+    XKX: monthly
     ZMB: monthly
     ZWE: monthly
 
 heavy:
   enabled: true
   countries:
-    AGO: monthly
-    ARG: monthly
-    AUS: monthly
-    BOL: monthly
-    BRA: monthly
-    CAN: monthly
-    CHN: monthly
-    DEU: monthly
-    DZA: monthly
-    EGY: monthly
-    ESP: monthly
-    FRA: monthly
-    GBR: monthly
-    IDN: monthly
-    IND: monthly
-    IRN: monthly
-    ITA: monthly
-    JPN: monthly
-    KAZ: monthly
-    MAR: monthly
-    MEX: monthly
-    PAK: monthly
-    PER: monthly
-    PHL: monthly
-    POL: monthly
-    RUS: monthly
-    SAU: monthly
-    THA: monthly
-    TUR: monthly
-    USA: monthly
-    VNM: monthly
-    ZAF: monthly
+    AGO: as needed
+    ARG: as needed
+    AUS: as needed
+    BOL: as needed
+    BRA: as needed
+    CAN: as needed
+    CHN: as needed
+    DEU: as needed
+    DZA: as needed
+    EGY: as needed
+    ESP: as needed
+    FRA: as needed
+    GBR: as needed
+    IDN: as needed
+    IND: as needed
+    IRN: as needed
+    ITA: as needed
+    JPN: as needed
+    KAZ: as needed
+    MAR: as needed
+    MEX: as needed
+    PAK: as needed
+    PER: as needed
+    PHL: as needed
+    POL: as needed
+    RUS: as needed
+    SAU: as needed
+    THA: as needed
+    TUR: as needed
+    USA: as needed
+    VNM: as needed
+    ZAF: as needed
 
 events:
   enabled: true

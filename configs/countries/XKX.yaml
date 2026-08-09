@@ -1,0 +1,6 @@
+# XKX: Kosovo uses a user-assigned code, not a standard ISO 3166-1 one, so the
+# Geofabrik lookup cannot map it to an alpha-2 and raises before any fallback.
+# The planet engine takes the boundary directly.
+source:
+  osm:
+    engine: planet

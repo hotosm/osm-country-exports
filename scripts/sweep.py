@@ -95,15 +95,19 @@ def skip_reason(attrs: dict, frequency_filter: str | None, today: date) -> str |
     return None
 
 
-def country_config(iso3: str) -> Path:
-    """configs/countries/<ISO3>.yaml merged over base, or base alone.
+def country_config(iso3: str, frequency: str) -> Path:
+    """configs/countries/<ISO3>.yaml merged over base, with the schedule's frequency.
 
+    The frequency is written in last because oex passes it to HDX as the expected
+    update frequency, so a dataset advertises the cadence that actually runs it.
     Interpolations stay unresolved, so no secret reaches the merged file.
     """
+    layers = [OmegaConf.load(BASE_CONFIG)]
     override = COUNTRY_CONFIG_DIR / f"{iso3}.yaml"
-    if not override.exists():
-        return BASE_CONFIG
-    merged = OmegaConf.merge(OmegaConf.load(BASE_CONFIG), OmegaConf.load(override))
+    if override.exists():
+        layers.append(OmegaConf.load(override))
+    layers.append(OmegaConf.create({"frequency": frequency}))
+    merged = OmegaConf.merge(*layers)
     target = WORK_DIR / "merged" / f"{iso3}.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(OmegaConf.to_yaml(merged, resolve=False), encoding="utf-8")
@@ -185,7 +189,11 @@ def resolve(
                 skipped.append(f"{name}/{label}: {reason}")
                 continue
 
-            config = country_config(str(ref)) if kind == "country" else Path(str(ref))
+            config = (
+                country_config(str(ref), attrs["frequency"])
+                if kind == "country"
+                else Path(str(ref))
+            )
             iso3 = str(ref) if kind == "country" else None
             commands = commands_for(config)
             for command in commands:

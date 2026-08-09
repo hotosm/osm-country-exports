@@ -34,7 +34,7 @@ cp .env.example .env && $EDITOR .env
 just one NPL                                          # single country, no HDX push
 source .env && just sweep --group priority            # one group
 source .env && just sweep --frequency monthly         # one frequency
-source .env && just sweep --group heavy --frequency monthly
+source .env && just sweep --group heavy --frequency "as needed"
 source .env && just sweep                             # everything enabled
 just sweep --dry-run                                  # print the commands, run nothing
 just sweep --json                                     # print the job list, run nothing
@@ -71,6 +71,13 @@ SDN: {frequency: monthly, expires: 2026-12-31}
 `just sweep --frequency "as needed"`. Disabled and expired jobs are skipped with
 the reason printed, never silently.
 
+A job's frequency is also what its HDX datasets advertise as the expected update
+frequency, so the schedule is the only place to set it. `daily`, `weekly`,
+`monthly`, `quarterly`, `yearly`, `never` and `as needed` all translate; a country
+on `as needed` publishes as "As needed", so readers know it updates on request.
+The value reaches HDX on the next publish, so change the schedule and run the job
+to update what a dataset claims.
+
 Which `oex-cli` subcommand a job uses comes from `source.osm.enabled` and
 `source.overture.enabled` in its config, so it is never declared twice. A config
 enabling both becomes two jobs.
@@ -84,6 +91,11 @@ Add it to a group in `scripts/schedule.yaml`. Order inside a group is preserved.
 Drop `configs/countries/<ISO3>.yaml` to override `base.yaml` for that country.
 Only the keys you set are replaced, everything else comes from `base.yaml`. See
 [`configs/countries/SDN.yaml.example`](configs/countries/SDN.yaml.example).
+
+Use it for a boundary the source lacks (`boundary.geom`), a memory ceiling a large
+country needs (`parallel.memory_gb`), a dataset name, or a different PBF engine.
+`frequency:` is the one key it cannot set: the schedule supplies it, so a value
+here is replaced.
 
 ## Adding an event, or another folder of configs
 
