@@ -29,7 +29,6 @@ TEMPLATE = REPO_ROOT / "configs" / "_tm-template.yaml"
 TM_API_BASE_URL = "https://tasking-manager-production-api.hotosm.org/api/v2"
 MAX_INTERVAL_HOURS = 24
 PBF_ENV = "TM_PBF"
-SANDBOX_PBF_ENV = "TM_SANDBOX_PBF"
 # TM mapping_types are 1-based indexes into this order.
 MAPPING_TYPES = ("Roads", "Buildings", "Waterways", "Landuse")
 DATE_PREFIX = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -97,7 +96,7 @@ def build_config(template, feature: dict, sandbox: bool, pbf_path: Path | None =
     if pbf_path is not None:
         cfg.source.osm.pbf_path = str(pbf_path)
     elif sandbox:
-        cfg.source.osm.pbf_path = f"${{oc.env:{SANDBOX_PBF_ENV}}}"
+        cfg.source.osm.pbf_path = f"${{oc.env:{PBF_ENV}}}"
     return cfg
 
 
@@ -187,28 +186,27 @@ def cut_project_extracts(
     features: list[dict], sandbox: bool, pbf_dir: Path | None
 ) -> dict[str, Path]:
     """Cut every project's PBF in one pass, and report which are usable."""
-    env_name = SANDBOX_PBF_ENV if sandbox else PBF_ENV
-    source = os.environ.get(env_name)
+    source = os.environ.get(PBF_ENV)
     if not source:
-        raise TaskingManagerError(f"--extract needs {env_name} set to the source PBF")
+        raise TaskingManagerError(f"--extract needs {PBF_ENV} set to the source PBF")
 
     target = pbf_dir or Path(os.environ.get("OEX_DATA_DIR", REPO_ROOT)) / "data" / (
         "tm_sandbox" if sandbox else "tm"
     )
     source_pbf = ensure_local_pbf(resolve_source_pbf(source), target)
     if not source_pbf.is_file():
-        raise TaskingManagerError(f"{env_name}={source_pbf} is not a file")
+        raise TaskingManagerError(f"{PBF_ENV}={source_pbf} is not a file")
     config, outputs = write_osmium_config(features, target)
     run_osmium_extract(source_pbf, config)
 
     usable = {}
     for project_id, path in outputs.items():
         if not path.is_file():
-            print(f"warn project {project_id}: osmium wrote no extract, using {env_name} whole")
+            print(f"warn project {project_id}: osmium wrote no extract, using {PBF_ENV} whole")
             continue
         if node_count(path) == 0:
             print(
-                f"warn project {project_id}: extract is empty, so {env_name} does not cover it; "
+                f"warn project {project_id}: extract is empty, so {PBF_ENV} does not cover it; "
                 "the export would publish nothing"
             )
         usable[project_id] = path
