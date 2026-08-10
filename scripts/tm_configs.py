@@ -61,6 +61,26 @@ def fetch_active_projects(interval: int, sandbox: bool, timeout: int) -> list[di
     return payload["features"]
 
 
+def fetch_project(project_id: str, timeout: int) -> dict:
+    """One project as a GeoJSON feature, whatever its recent activity."""
+    url = f"{TM_API_BASE_URL}/projects/{project_id}/"
+    request = urllib.request.Request(url, headers={"accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.load(response)
+    except (urllib.error.URLError, json.JSONDecodeError) as error:
+        raise TaskingManagerError(f"{url}: {error}") from error
+    if "areaOfInterest" not in payload:
+        raise TaskingManagerError(f"{url}: no `areaOfInterest` in the response")
+    return {
+        "geometry": payload["areaOfInterest"],
+        "properties": {
+            "project_id": payload["projectId"],
+            "mapping_types": payload.get("mappingTypes"),
+        },
+    }
+
+
 def category_names(mapping_types: list) -> list[str]:
     """TM mapping types to template category names, dropping ones oex has no filter for.
 
@@ -268,7 +288,7 @@ def main() -> int:
         "--interval",
         type=int,
         default=MAX_INTERVAL_HOURS,
-        help=f"hours of activity to consider, 1..{MAX_INTERVAL_HOURS} (default 24)",
+        help=f"hours of activity to consider, 1..{MAX_INTERVAL_HOURS} (default 24); unused with --project",
     )
     parser.add_argument("--sandbox", action="store_true", help="sandbox projects")
     parser.add_argument("--out", type=Path, help="output dir (default: the group dir)")
@@ -282,7 +302,10 @@ def main() -> int:
     )
     parser.add_argument("--pbf-dir", type=Path, help="where --extract writes per-project PBFs")
     parser.add_argument(
-        "--project", action="append", metavar="ID", help="only this project, repeatable"
+        "--project",
+        action="append",
+        metavar="ID",
+        help="export these projects whatever their activity, ignoring --interval",
     )
     parser.add_argument(
         "--export", action="store_true", help="export each project after writing its config"
@@ -297,15 +320,10 @@ def main() -> int:
         return 2
 
     try:
-        features = fetch_active_projects(args.interval, args.sandbox, args.timeout)
         if args.project:
-            wanted = {str(pid) for pid in args.project}
-            features = [f for f in features if str(f["properties"]["project_id"]) in wanted]
-            if missing := wanted - {str(f["properties"]["project_id"]) for f in features}:
-                raise TaskingManagerError(
-                    f"project(s) {', '.join(sorted(missing))} not active in the last "
-                    f"{args.interval}h; widen --interval"
-                )
+            features = [fetch_project(pid, args.timeout) for pid in args.project]
+        else:
+            features = fetch_active_projects(args.interval, args.sandbox, args.timeout)
 
         kept = []
         for feature in features:
