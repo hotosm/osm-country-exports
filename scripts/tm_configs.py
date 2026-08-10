@@ -225,8 +225,9 @@ def node_count(pbf: Path) -> int:
     return int(completed.stdout.strip() or 0)
 
 
-def sync(out_dir: Path, configs: dict, dry_run: bool) -> tuple[int, int]:
-    """Write the generated configs and drop files for projects no longer active."""
+def sync(out_dir: Path, configs: dict, dry_run: bool) -> int:
+    """Write changed configs. Nothing is deleted: the API reports what moved in the
+    interval, not everything that exists, so its silence is not a signal to drop a project."""
     written = 0
     for name, cfg in sorted(configs.items()):
         text = OmegaConf.to_yaml(cfg, resolve=False)
@@ -237,12 +238,25 @@ def sync(out_dir: Path, configs: dict, dry_run: bool) -> tuple[int, int]:
         if not dry_run:
             target.write_text(text, encoding="utf-8")
 
-    stale = [p for p in sorted(out_dir.glob("*.yaml")) if p.name not in configs]
-    for path in stale:
-        print(f"prune {_display(path)}")
-        if not dry_run:
-            path.unlink()
-    return written, len(stale)
+    return written
+
+
+def export_configs(paths: list[Path]) -> int:
+    """Run oex-cli over the configs just written. How often to do that is the caller's call."""
+    failures = []
+    for index, path in enumerate(paths, start=1):
+        print(f"[{index}/{len(paths)}] export {_display(path)}", flush=True)
+        completed = subprocess.run(
+            ["uv", "run", "oex-cli", "osm", "--config", str(path)], cwd=REPO_ROOT
+        )
+        if completed.returncode != 0:
+            print(f"[{index}/{len(paths)}] FAILED rc={completed.returncode}", file=sys.stderr)
+            failures.append(path.name)
+    if failures:
+        print(f"{len(failures)}/{len(paths)} failed: {', '.join(failures)}", file=sys.stderr)
+        return 1
+    print(f"export complete {len(paths)}/{len(paths)}")
+    return 0
 
 
 def main() -> int:
@@ -267,6 +281,12 @@ def main() -> int:
         "each config at its own extract instead of the whole file",
     )
     parser.add_argument("--pbf-dir", type=Path, help="where --extract writes per-project PBFs")
+    parser.add_argument(
+        "--project", action="append", metavar="ID", help="only this project, repeatable"
+    )
+    parser.add_argument(
+        "--export", action="store_true", help="export each project after writing its config"
+    )
     args = parser.parse_args()
 
     out_dir = args.out or REPO_ROOT / "configs" / (
@@ -276,43 +296,50 @@ def main() -> int:
         print(f"tm: {out_dir} is not a directory", file=sys.stderr)
         return 2
 
-    template = OmegaConf.create(TEMPLATE.read_text(encoding="utf-8"))
     try:
         features = fetch_active_projects(args.interval, args.sandbox, args.timeout)
+        if args.project:
+            wanted = {str(pid) for pid in args.project}
+            features = [f for f in features if str(f["properties"]["project_id"]) in wanted]
+            if missing := wanted - {str(f["properties"]["project_id"]) for f in features}:
+                raise TaskingManagerError(
+                    f"project(s) {', '.join(sorted(missing))} not active in the last "
+                    f"{args.interval}h; widen --interval"
+                )
+
+        kept = []
+        for feature in features:
+            if category_names(feature["properties"].get("mapping_types")):
+                kept.append(feature)
+            else:
+                print(
+                    f"skip project {feature['properties']['project_id']}: no supported mapping type"
+                )
+
+        outputs: dict[str, Path] = {}
+        if args.extract and kept and not args.dry_run:
+            outputs = cut_project_extracts(kept, args.sandbox, args.pbf_dir)
     except TaskingManagerError as error:
         print(f"tm: {error}", file=sys.stderr)
         return 2
 
-    kept, skipped = [], []
-    for feature in features:
-        if category_names(feature["properties"].get("mapping_types")):
-            kept.append(feature)
-        else:
-            skipped.append(feature["properties"]["project_id"])
-    for project_id in skipped:
-        print(f"skip project {project_id}: no supported mapping type")
+    template = OmegaConf.create(TEMPLATE.read_text(encoding="utf-8"))
+    configs = {
+        f"{feature['properties']['project_id']}.yaml": build_config(
+            template, feature, args.sandbox, outputs.get(str(feature["properties"]["project_id"]))
+        )
+        for feature in kept
+    }
 
-    outputs: dict[str, Path] = {}
-    if args.extract and kept and not args.dry_run:
-        try:
-            outputs = cut_project_extracts(kept, args.sandbox, args.pbf_dir)
-        except TaskingManagerError as error:
-            print(f"tm: {error}", file=sys.stderr)
-            return 2
-
-    configs = {}
-    for feature in kept:
-        project_id = str(feature["properties"]["project_id"])
-        cfg = build_config(template, feature, args.sandbox, outputs.get(project_id))
-        configs[f"{project_id}.yaml"] = cfg
-
-    written, pruned = sync(out_dir, configs, args.dry_run)
+    written = sync(out_dir, configs, args.dry_run)
     scope = "sandbox" if args.sandbox else "production"
     print(
         f"tm: {scope} active={len(features)} configs={len(configs)} "
-        f"written={written} pruned={pruned} -> {_display(out_dir)}"
+        f"written={written} -> {_display(out_dir)}"
     )
-    return 0
+    if not args.export or args.dry_run:
+        return 0
+    return export_configs([out_dir / name for name in sorted(configs)])
 
 
 if __name__ == "__main__":
