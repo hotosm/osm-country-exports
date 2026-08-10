@@ -100,14 +100,24 @@ def category_names(mapping_types: list) -> list[str]:
     return names
 
 
-def build_config(template, feature: dict, sandbox: bool, pbf_path: Path | None = None):
-    """Fill the template in for one project. Returns None when nothing maps."""
+def build_config(
+    template,
+    feature: dict,
+    sandbox: bool,
+    pbf_path: Path | None = None,
+    all_categories: bool = False,
+):
+    """Fill the template in for one project. Returns None when nothing maps.
+
+    A caller-supplied template declares the categories it wants, so the project's
+    mapping types only select from the default one."""
     project_id = feature["properties"]["project_id"]
-    wanted = category_names(feature["properties"].get("mapping_types"))
-    if not wanted:
-        return None
     cfg = OmegaConf.create(OmegaConf.to_yaml(template, resolve=False))
-    cfg.categories = [c for c in cfg.categories if c.name in wanted]
+    if not all_categories:
+        wanted = category_names(feature["properties"].get("mapping_types"))
+        if not wanted:
+            return None
+        cfg.categories = [c for c in cfg.categories if c.name in wanted]
     if not cfg.categories:
         return None
     cfg.dataset_name = f"Tasking Manager Project {project_id}"
@@ -302,6 +312,9 @@ def main() -> int:
     )
     parser.add_argument("--pbf-dir", type=Path, help="where --extract writes per-project PBFs")
     parser.add_argument(
+        "--template", type=Path, default=TEMPLATE, help="config template to fill in per project"
+    )
+    parser.add_argument(
         "--project",
         action="append",
         metavar="ID",
@@ -341,13 +354,21 @@ def main() -> int:
         print(f"tm: {error}", file=sys.stderr)
         return 2
 
-    template = OmegaConf.create(TEMPLATE.read_text(encoding="utf-8"))
-    configs = {
-        f"{feature['properties']['project_id']}.yaml": build_config(
-            template, feature, args.sandbox, outputs.get(str(feature["properties"]["project_id"]))
+    template = OmegaConf.create(args.template.read_text(encoding="utf-8"))
+    configs = {}
+    for feature in kept:
+        project_id = str(feature["properties"]["project_id"])
+        cfg = build_config(
+            template,
+            feature,
+            args.sandbox,
+            outputs.get(project_id),
+            args.template != TEMPLATE,
         )
-        for feature in kept
-    }
+        if cfg is None:
+            print(f"skip project {project_id}: no category matched")
+            continue
+        configs[f"{project_id}.yaml"] = cfg
 
     written = sync(out_dir, configs, args.dry_run)
     scope = "sandbox" if args.sandbox else "production"

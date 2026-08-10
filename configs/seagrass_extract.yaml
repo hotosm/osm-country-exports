@@ -1,0 +1,65 @@
+# Template for seagrass mapping projects, passed to scripts/tm_configs.py with --template.
+#
+# Seagrass is mapped as `seamark:type=seagrass`, which none of the Tasking Manager
+# mapping types point at, so the default template exports nothing for these projects.
+# The single category here replaces the mapping-type selection via --categories Seagrass.
+
+key: ""
+subnational: true
+
+boundary:
+  geom: null
+  buffer_meters: 0
+
+output:
+  dir: ${oc.env:OEX_DATA_DIR,.}/output
+  formats: [geojson, shp, kml]
+  metadata: true
+  resume: true
+  split_by_geometry: true
+  report:
+    enabled: false
+  s3:
+    enabled: true
+    bucket: ${oc.env:OEX_S3_BUCKET}
+    prefix: TM
+    region: us-east-1
+    acl: public-read
+    nest_by_category: true
+    nest_by_geometry: true
+    name_include_source: false
+
+parallel:
+  enabled: true
+  threads: 2
+  memory_gb: 7
+
+hdx:
+  push: false
+
+source:
+  overture:
+    enabled: false
+  osm:
+    enabled: true
+    engine: planet
+    cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/osm
+    pbf_path: ${oc.env:TM_PBF}
+    auto_download_planet: false
+    planet_fallback: false
+  pcodes:
+    enabled: false
+
+categories:
+  - name: Seagrass
+    osm:
+      enabled: true
+      filter:
+        seamark:type: [seagrass]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['seamark:type'] AS seamark_type
+        - tags['area'] AS area
+        - tags['natural'] AS natural
+        - tags['source'] AS source
