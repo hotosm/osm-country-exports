@@ -4,9 +4,10 @@ version = "0.0.1"
 description = "HOT OSM country-scale HDX exports."
 requires-python = ">=3.11"
 dependencies = [
-    "oex>=0.4.7",
+    "oex>=0.4.10",
     "omegaconf>=2.3.0",
     "pyyaml>=6.0.2",
+    "quackosm",
 ]
 
 [dependency-groups]
@@ -21,4 +22,7 @@ target-version = "py311"
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "fef1081fc9c38e4699a1b5b623582960acb34757" }
 
