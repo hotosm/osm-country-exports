@@ -24,5 +24,5 @@ target-version = "py311"
 package = false
 
 [tool.uv.sources]
-quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "fef1081fc9c38e4699a1b5b623582960acb34757" }
+quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "68f808195b47c0d928a4fdd0fda6715f390a6d6f" }
 

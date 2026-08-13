@@ -25,8 +25,6 @@ output:
 
 parallel:
   enabled: true
-  threads: 2
-  memory_gb: 7
 
 hdx:
   push: true
@@ -58,4 +56,6 @@ source:
     enabled: true
     cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/pcodes
     levels: [1, 2, 3, 4]
-    boundary_resolution: geos
+    # h3_neighbor trades ~5 km accuracy at admin borders for bounded memory. The geos
+    # path allocates outside DuckDB's budget and exhausts a 16 GB box on Finland.
+    boundary_resolution: h3_neighbor

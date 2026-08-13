@@ -1,5 +1,0 @@
-# FIN: the points_of_interest category exhausted DuckDB's 6.5 GiB budget under the
-# 7 GB default while ~40 GB stayed free. Raised so the category completes; oex's
-# adaptive sizing would pick 37 GB on a 62 GB machine.
-parallel:
-  memory_gb: 24
