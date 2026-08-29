@@ -154,6 +154,7 @@ categories:
     boundary_resolution: h3_neighbor
     hdx:
       title: Buildings
+      summary: Building footprints, from homes to hospitals, schools and places of worship. Standing and destroyed together, split by status.
       notes: |
         Building footprints across the region, from residential homes to hospitals, schools and places of worship. Useful for population estimation, damage assessment, and urban planning.
 
@@ -219,6 +220,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Destroyed and Damaged Features
+      summary: Buildings, roads, bridges, waterways and other features mappers recorded as destroyed or damaged during the response.
       notes: |
         Buildings, roads, bridges, waterways and other features that mappers have recorded as destroyed or damaged during the response. `status` says destroyed or damaged, and `feature_type` says what the feature was.
 
@@ -288,6 +290,7 @@ categories:
     boundary_resolution: h3_neighbor
     hdx:
       title: Roads
+      summary: Motorways, residential streets, service roads, tracks, footways and trails, with surface and width where recorded.
       notes: |
         Road network across the region tagged `highway=*`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
 
@@ -349,6 +352,7 @@ categories:
     boundary_resolution: h3_neighbor
     hdx:
       title: Waterways
+      summary: Rivers, streams, canals, lakes, ponds and wetlands.
       notes: |
         Water features across the region: rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
 
@@ -412,6 +416,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Railways
+      summary: Rail lines, tram tracks and stations.
       notes: |
         Railway lines and stations tagged `railway=*`: rail lines, tram tracks, and stations. Useful for transport accessibility analysis and basemap context.
 
@@ -457,6 +462,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Bridges
+      summary: Road, track, footway and aqueduct crossings, with the road class each one carries.
       notes: |
         Bridges tagged `bridge=*` or `man_made=bridge`: road, track, footway and aqueduct crossings, together with the road class each one carries. River crossings are the assets a flood removes first, and losing one can isolate settlements upstream, so this layer is separated from the road network for faster access analysis.
 
@@ -508,6 +514,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Education Facilities
+      summary: Schools, kindergartens, colleges and universities.
       notes: |
         Education facilities: schools, kindergartens, colleges, and universities tagged via `amenity` or `building`. Useful for school-access mapping, education planning, and resource allocation.
 
@@ -570,6 +577,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Health Facilities
+      summary: Hospitals, clinics, pharmacies, doctors and dentists.
       notes: |
         Health facilities: hospitals, clinics, pharmacies, doctors, and dentists tagged via `amenity` or `healthcare`. Useful for service-access analysis, emergency response, and healthcare gap mapping.
 
@@ -632,6 +640,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Populated Places
+      summary: Named cities, towns, villages, suburbs and residential land.
       notes: |
         Settlements and residential areas: named cities, towns, villages, suburbs and residential land. Useful for demographic context, settlement-level targeting, and population analysis.
 
@@ -687,6 +696,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Financial Services
+      summary: Banks, ATMs, post offices, money transfer agents and microfinance branches.
       notes: |
         Financial services: banks, ATMs, post offices, money transfer agents, and microfinance branches tagged via `amenity`. Useful for financial-inclusion mapping, cash-distribution planning, and economic analysis.
 
@@ -741,6 +751,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Sea Ports
+      summary: Ports and ferry terminals.
       notes: |
         Sea ports and ferry terminals tagged via `amenity`, `building`, or `port`. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
 
@@ -790,6 +801,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Points of Interest
+      summary: Public-facing amenities, shops, tourist attractions and landmarks.
       notes: |
         Points of interest: public-facing amenities, shops, tourist attractions, and landmarks tagged via `amenity`, `shop`, `tourism`, or `man_made`. Useful for general POI reference, urban analysis, and basemap detail.
 
@@ -859,6 +871,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Open Spaces
+      summary: Parks, pitches, playgrounds, recreation grounds, commons, village greens, marketplaces and camp sites, the open ground that can host shelter or relief staging.
       notes: |
         Open ground that could host temporary shelter, evacuation assembly or relief staging: parks, pitches, playgrounds, recreation grounds, commons, village greens, marketplaces, camp sites and managed grass. Flood response needs candidate sites on dry, unbuilt ground, and this layer separates them from the general land use picture.
 
@@ -925,6 +938,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Helipads
+      summary: Helicopter landing points, including those attached to hospitals and other facilities.
       notes: |
         Helicopter landing points tagged `aeroway=helipad`, `aeroway=heliport`, `emergency:helipad=*` or `emergency=landing_site`, including helipads attached to hospitals and other facilities. Where a flood has washed out road bridges, helicopter access becomes the route for evacuation and relief, so landing points are separated from the airports layer to make them directly usable.
 
@@ -976,6 +990,7 @@ categories:
     formats: [gpkg, shp, geojson, kml]
     hdx:
       title: Police Stations
+      summary: Police posts and stations.
       notes: |
         Police posts and stations tagged `amenity=police`. Police units coordinate search and rescue, evacuation and site security during a flood response, and their posts are often the first point of contact in rural wards.
 
