@@ -4,3 +4,6 @@
 source:
   osm:
     engine: planet
+
+# HDX's own name for the location; pycountry has no entry for XKX.
+dataset_name: Kosovo

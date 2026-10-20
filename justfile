@@ -1,46 +1,51 @@
 set shell := ["bash", "-uc"]
+# Keeps a quoted value such as --frequency "as needed" one argument.
+set positional-arguments
 
-# Default: list recipes
 default:
     @just --list
 
-# Install deps into .venv via uv
 setup:
     uv sync
 
-# Lint
 lint:
-    uv run ruff check .
+    uv run ruff check --fix .
+    uv run ruff format .
+    uv run ty check .
 
-# Test
 test:
     uv run pytest tests/
 
-# Run a single country end-to-end with current config (no HDX push).
-# Usage: just one NPL
+# Serve the documentation site locally with live reload.
+docs:
+    uv run --isolated --only-group docs zensical serve
+
+# Run a single country end-to-end with the current config, without pushing to HDX.
 one ISO3:
     uv run oex-cli osm --config configs/base.yaml --iso3 {{ISO3}} --no-hdx-push
 
-# Run the sweep over scripts/schedule.yaml. Pushes to HDX by default.
-# Usage:
-#   just sweep                        # every enabled job
-#   just sweep --group priority       # one group
-#   just sweep --frequency monthly    # one frequency
-#   just sweep --dry-run              # print the commands, run nothing
+# Run scripts/schedule.yaml. Pushes to HDX. Takes --group, --frequency, --dry-run.
 sweep *ARGS:
-    ./scripts/sweep.py {{ARGS}}
+    ./scripts/sweep.py "$@"
 
-# Regenerate Tasking Manager configs from the active-projects API, then sweep them.
-# Usage:
-#   just tm                 # production projects
-#   just tm --sandbox       # sandbox projects
+# Regenerate Tasking Manager configs from the active-projects API, writing no exports.
 tm-configs *ARGS:
-    ./scripts/tm_configs.py {{ARGS}}
+    ./scripts/tm_configs.py "$@"
 
+# Regenerate the production configs, cut their PBF extracts, then sweep them.
 tm:
     ./scripts/tm_configs.py --extract
     ./scripts/sweep.py --group tasking_manager --frequency daily
 
+# The same for sandbox projects.
 tm-sandbox:
     ./scripts/tm_configs.py --sandbox --extract
     ./scripts/sweep.py --group tasking_manager_sandbox --frequency daily
+
+# Publish every campaign in configs/tm_campaigns.yaml to HDX. Takes --dry-run.
+tm-boundaries *ARGS:
+    ./scripts/tm_campaign_boundaries.py --campaigns-file configs/tm_campaigns.yaml "$@"
+
+# Publish the geometry a buffered extraction boundary was derived from.
+source-geometry CONFIG NAME *ARGS:
+    ./scripts/publish_source_geometry.py --config "$1" --name "$2" "${@:3}"

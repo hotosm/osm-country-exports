@@ -6,6 +6,11 @@
     sweep.py --frequency "as needed"                the manual-only jobs
     sweep.py --dry-run                              print the commands, run nothing
     sweep.py --json                                 print the job list, run nothing
+    sweep.py --group priority --no-resume           re-export even if state says done
+    sweep.py --group normal --only ZWE,VNM          just those countries
+    sweep.py --group normal --workers 4             four countries at once
+
+With --workers above 1 each job's output goes to .sweep/logs/<job-id>.log.
 
 Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds the lock.
 """
@@ -15,11 +20,16 @@ import fcntl
 import json
 import subprocess
 import sys
+import threading
+from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+from typing import Protocol
 
 import yaml
+from oex.system import adaptive_parallel_resources
 from omegaconf import OmegaConf
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +44,13 @@ DEFAULT_TIMEOUT_SECONDS = 6 * 60 * 60
 
 class ScheduleError(Exception):
     """The schedule, or a config it points at, is malformed."""
+
+
+class Runnable(Protocol):
+    @property
+    def id(self) -> str: ...
+
+    def argv(self) -> list[str]: ...
 
 
 @dataclass(frozen=True)
@@ -95,7 +112,14 @@ def skip_reason(attrs: dict, frequency_filter: str | None, today: date) -> str |
     return None
 
 
-def country_config(iso3: str, frequency: str) -> Path:
+def memory_gb_per_worker(workers: int) -> int:
+    """Concurrent exports would each size themselves from the whole machine, so they divide
+    oex's adaptive share between them; the split replaces a country's own memory_gb."""
+    _, memory_gb = adaptive_parallel_resources()
+    return max(1, memory_gb // workers)
+
+
+def country_config(iso3: str, frequency: str, memory_gb: int | None = None) -> Path:
     """configs/countries/<ISO3>.yaml merged over base, with the schedule's frequency.
 
     The frequency is written in last because oex passes it to HDX as the expected
@@ -107,6 +131,8 @@ def country_config(iso3: str, frequency: str) -> Path:
     if override.exists():
         layers.append(OmegaConf.load(override))
     layers.append(OmegaConf.create({"frequency": frequency}))
+    if memory_gb is not None:
+        layers.append(OmegaConf.create({"parallel": {"memory_gb": memory_gb}}))
     merged = OmegaConf.merge(*layers)
     target = WORK_DIR / "merged" / f"{iso3}.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -132,7 +158,8 @@ def folder_candidates(name: str, group: dict) -> list[tuple[str, dict, str, obje
         raise ScheduleError(f"group {name!r}: {folder} is not a directory")
     overrides = group.get("overrides") or {}
     candidates = []
-    for config in sorted(folder.glob("*.yaml")):
+    # A leading underscore marks a partial included by another config, not a job.
+    for config in sorted(folder.glob("[!_]*.yaml")):
         raw = yaml.safe_load(config.read_text(encoding="utf-8")) or {}
         default = raw.get("frequency") or group.get("frequency")
         candidates.append(
@@ -160,6 +187,7 @@ def resolve(
     frequency_filter: str | None,
     today: date,
     extra: tuple[str, ...] = (),
+    memory_gb: int | None = None,
 ) -> tuple[list[Job], list[str]]:
     groups = schedule.get("groups")
     if not groups:
@@ -190,7 +218,7 @@ def resolve(
                 continue
 
             config = (
-                country_config(str(ref), attrs["frequency"])
+                country_config(str(ref), attrs["frequency"], memory_gb)
                 if kind == "country"
                 else Path(str(ref))
             )
@@ -214,27 +242,74 @@ def acquire_lock():
     return handle
 
 
-def run_jobs(jobs: list[Job], timeout: int) -> list[str]:
-    failures = []
-    total = len(jobs)
-    for index, job in enumerate(jobs, start=1):
-        print(f"[{index}/{total}] {job.id}: {' '.join(job.argv())}", flush=True)
-        try:
-            completed = subprocess.run(job.argv(), cwd=REPO_ROOT, timeout=timeout)
-        except subprocess.TimeoutExpired:
-            print(
-                f"[{index}/{total}] {job.id} TIMEOUT after {timeout}s", file=sys.stderr, flush=True
-            )
-            failures.append(job.id)
-            continue
-        if completed.returncode != 0:
-            print(
-                f"[{index}/{total}] {job.id} FAILED rc={completed.returncode}",
-                file=sys.stderr,
-                flush=True,
-            )
-            failures.append(job.id)
-    return failures
+def select_countries(jobs: list[Job], only: str) -> list[Job]:
+    """Narrow a resolved job list to the named ISO3 codes, for finishing a long sweep."""
+    wanted = {code.strip().upper() for code in only.split(",") if code.strip()}
+    unknown = wanted - {job.iso3 for job in jobs if job.iso3}
+    if unknown:
+        raise ScheduleError(f"--only names no job for {sorted(unknown)}")
+    return [job for job in jobs if job.iso3 in wanted]
+
+
+class Progress:
+    """Counts completions, so the running total is right when jobs finish out of order."""
+
+    def __init__(self, total: int):
+        self._total = total
+        self._done = 0
+        self._lock = threading.Lock()
+
+    def tick(self) -> str:
+        with self._lock:
+            self._done += 1
+            return f"[{self._done}/{self._total}]"
+
+
+def run_job(
+    job: Runnable, timeout: int, capture_dir: Path | None, progress: Progress
+) -> str | None:
+    """Returns the job id when it fails, None when it succeeds."""
+    print(f"{job.id}: starting", flush=True)
+    log_file = None
+    log_hint = ""
+    try:
+        if capture_dir is not None:
+            capture_dir.mkdir(parents=True, exist_ok=True)
+            log_path = capture_dir / f"{job.id.replace('/', '_')}.log"
+            log_file = log_path.open("w", encoding="utf-8")
+            log_hint = f", see {log_path}"
+        completed = subprocess.run(
+            job.argv(), cwd=REPO_ROOT, timeout=timeout, stdout=log_file, stderr=log_file
+        )
+    except subprocess.TimeoutExpired:
+        print(f"{progress.tick()} {job.id} TIMEOUT after {timeout}s{log_hint}", file=sys.stderr)
+        return job.id
+    except OSError as error:
+        # One unrunnable job must not discard the results of the jobs beside it.
+        print(f"{progress.tick()} {job.id} FAILED {error}{log_hint}", file=sys.stderr)
+        return job.id
+    finally:
+        if log_file is not None:
+            log_file.close()
+    if completed.returncode != 0:
+        print(
+            f"{progress.tick()} {job.id} FAILED rc={completed.returncode}{log_hint}",
+            file=sys.stderr,
+        )
+        return job.id
+    print(f"{progress.tick()} {job.id} done", flush=True)
+    return None
+
+
+def run_jobs(jobs: Sequence[Runnable], timeout: int, workers: int = 1) -> list[str]:
+    progress = Progress(len(jobs))
+    if workers == 1:
+        return [r for job in jobs if (r := run_job(job, timeout, None, progress)) is not None]
+
+    capture_dir = WORK_DIR / "logs"
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs)
+    return [r for r in results if r is not None]
 
 
 def main() -> int:
@@ -257,15 +332,53 @@ def main() -> int:
         action="store_true",
         help="rehearse against the real configs without publishing to HDX",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="run this many exports at once, each taking the next country as it frees up",
+    )
+    parser.add_argument(
+        "--only",
+        help="comma-separated ISO3 codes; run just these, for resuming a long sweep",
+    )
+    parser.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="re-export every category even if the state file says it is already uploaded",
+    )
     args = parser.parse_args()
 
+    if args.workers < 1:
+        parser.error("--workers must be at least 1")
+
     extra = ("--no-hdx-push",) if args.no_hdx_push else ()
+    if args.no_resume:
+        extra += ("--no-resume",)
     schedule = yaml.safe_load(SCHEDULE_FILE.read_text(encoding="utf-8")) or {}
     try:
-        jobs, skipped = resolve(schedule, args.group, args.frequency, date.today(), extra)
+        memory_gb = memory_gb_per_worker(args.workers) if args.workers > 1 else None
+        jobs, skipped = resolve(
+            schedule, args.group, args.frequency, date.today(), extra, memory_gb
+        )
     except ScheduleError as error:
         print(f"sweep: {error}", file=sys.stderr)
         return 2
+
+    if args.workers > 1 and any(job.iso3 is None for job in jobs):
+        print(
+            "sweep: --workers above 1 only covers country groups; the memory budget "
+            "cannot be set for a folder of standalone configs",
+            file=sys.stderr,
+        )
+        return 2
+
+    if args.only:
+        try:
+            jobs = select_countries(jobs, args.only)
+        except ScheduleError as error:
+            print(f"sweep: {error}", file=sys.stderr)
+            return 2
 
     if args.json:
         print(json.dumps([job.as_dict() for job in jobs]))
@@ -287,7 +400,7 @@ def main() -> int:
         print("sweep: another sweep holds the lock, refusing to overlap", file=sys.stderr)
         return 3
 
-    failures = run_jobs(jobs, args.timeout)
+    failures = run_jobs(jobs, args.timeout, args.workers)
     if failures:
         print(f"sweep: {len(failures)}/{len(jobs)} failed: {', '.join(failures)}", file=sys.stderr)
         return 1

@@ -5,21 +5,17 @@ HOT OpenStreetMap country-scale HDX exports, driven by
 
 ## Layout
 
-```
-configs/
-  base.yaml                 global defaults: HDX, S3, output dir
-  _hot-schema.yaml          vendored copy of oex's hot-schema.yaml (OSM-only)
-  _tm-template.yaml         template for Tasking Manager project exports
-  countries/<ISO3>.yaml     optional per-country override, merged over base.yaml
-  events/<name>.yaml        standalone configs for event responses
-  tasking_manager/          generated per run, one config per active TM project
-  tasking_manager_sandbox/  the same for TM sandbox projects
-scripts/
-  schedule.yaml             what runs, and when
-  sweep.py                  resolves the schedule into oex-cli jobs and runs them
-  tm_configs.py             generates the Tasking Manager configs
-systemd/                    daily, weekly and monthly timers
-```
+`configs/base.yaml` holds the global defaults (HDX, S3, output) and `configs/_hot-schema.yaml`
+the export layers with their HDX metadata. `configs/countries/<ISO3>.yaml` overrides a country
+and is merged over the base; `configs/events/` holds standalone event configs. Tasking Manager
+configs are generated per run into `configs/tasking_manager/` (and `_sandbox/`) from
+`configs/_tm-template.yaml`, and `configs/tm_campaigns.yaml` lists the campaigns whose
+project boundaries are published.
+
+`scripts/schedule.yaml` says what runs and when, and `scripts/sweep.py` runs it as `oex-cli`
+jobs. `scripts/tm_configs.py` generates the Tasking Manager configs,
+`scripts/tm_campaign_boundaries.py` publishes campaign boundaries, and
+`scripts/publish_source_geometry.py` publishes the geometry a buffered boundary came from.
 
 ## Install
 
@@ -28,115 +24,67 @@ just setup
 cp .env.example .env && $EDITOR .env
 ```
 
+`oex` is installed from PyPI. To run against a local checkout of the library,
+install it over the top and leave `pyproject.toml` alone, so the pinned release stays
+what a deployment gets:
+
+```bash
+uv pip install -e ../path/to/overture2hdx
+export UV_NO_SYNC=1
+```
+
+`uv run` re-syncs from the lock file before each command, which would replace the
+editable install with the pinned release.
+
 ## Run
 
 ```bash
-just one NPL                                          # single country, no HDX push
-source .env && just sweep --group priority            # one group
-source .env && just sweep --frequency monthly         # one frequency
-source .env && just sweep --group heavy --frequency "as needed"
-source .env && just sweep                             # everything enabled
-just sweep --dry-run                                  # print the commands, run nothing
-just sweep --json                                     # print the job list, run nothing
-just sweep --group priority --no-hdx-push             # real exports, nothing published
+set -a && source .env && set +a
+just sweep --group priority
+just sweep --frequency monthly
+just sweep --group heavy --frequency "as needed" --only USA
+just sweep --dry-run
 ```
 
-Both filters are optional and combine. Omitting one means all of it. Jobs run one
-at a time in the order `groups:` declares, each with a timeout, and a lock stops
-one sweep from overlapping the next. Failed jobs are listed by name at the end.
+`--group` and `--frequency` are both optional and combine. Omitting one means all of it.
+Jobs run in the order `groups:` declares, one at a time unless `--workers` is above 1, each
+with a timeout, and a lock stops one sweep from overlapping the next. Failed jobs are listed
+by name at the end.
 
-For systemd, see [`systemd/README.md`](systemd/README.md).
+`--no-hdx-push` skips HDX, but the files still upload to the S3 bucket. The
+[documentation](https://hotosm.github.io/osm-country-exports/maintain/operate/) lists every
+option.
 
-## The schedule
+## Documentation
 
-`scripts/schedule.yaml` is the single answer to what runs and when. `groups:`
-declares the run order, and position in that list is priority. Every group holds
-one of two job sources:
-
-- `countries:` a map of ISO3 to frequency. The config is
-  `configs/countries/<ISO3>.yaml` merged over `configs/base.yaml`, or
-  `configs/base.yaml` alone.
-- `dir:` a folder of standalone configs, one job per file. Frequency comes from
-  each config's own `frequency:` field, falling back to the group's.
-
-Any value is either a bare frequency or a mapping:
-
-```yaml
-AFG: monthly
-YEM: {frequency: monthly, enabled: false}
-SDN: {frequency: monthly, expires: 2026-12-31}
-```
-
-`frequency: as needed` never runs on a schedule. Run those by hand with
-`just sweep --frequency "as needed"`. Disabled and expired jobs are skipped with
-the reason printed, never silently.
-
-A job's frequency is also what its HDX datasets advertise as the expected update
-frequency, so the schedule is the only place to set it. `daily`, `weekly`,
-`monthly`, `quarterly`, `yearly`, `never` and `as needed` all translate; a country
-on `as needed` publishes as "As needed", so readers know it updates on request.
-The value reaches HDX on the next publish, so change the schedule and run the job
-to update what a dataset claims.
-
-Which `oex-cli` subcommand a job uses comes from `source.osm.enabled` and
-`source.overture.enabled` in its config, so it is never declared twice. A config
-enabling both becomes two jobs.
-
-## Adding a country
-
-Add it to a group in `scripts/schedule.yaml`. Order inside a group is preserved.
-
-## Per-country overrides
-
-Drop `configs/countries/<ISO3>.yaml` to override `base.yaml` for that country.
-Only the keys you set are replaced, everything else comes from `base.yaml`. See
-[`configs/countries/SDN.yaml.example`](configs/countries/SDN.yaml.example).
-
-Use it for a boundary the source lacks (`boundary.geom`), a memory ceiling a large
-country needs (`parallel.memory_gb`), a dataset name, or a different PBF engine.
-`frequency:` is the one key it cannot set: the schedule supplies it, so a value
-here is replaced.
-
-## Adding an event, or another folder of configs
-
-Put a standalone config in `configs/events/` and it joins the `events` group on
-the next run. Set its `frequency:` to schedule it, or leave it `as needed` to keep
-it manual. Use the group's `overrides:` block to disable one file or give it an
-expiry date without editing the config.
-
-Another folder needs no code change, only a group in `scripts/schedule.yaml` and
-its name in `groups:`:
-
-```yaml
-tasking_manager:
-  enabled: true
-  dir: configs/tasking_manager
-  frequency: daily
-```
+The [documentation site](https://hotosm.github.io/osm-country-exports/) covers using the
+data (HDX, the STAC catalog, QGIS, DuckDB), what the exports contain, the schedule,
+editing a country, adding an event, and running the exports. Its source is in `docs/`;
+preview it with `just docs`.
 
 ## Tasking Manager projects
 
-TM projects come from the API rather than from files, so their configs are
-generated before the sweep runs:
+TM project configs are generated from the API before the sweep runs. `just tm`
+regenerates the production configs and sweeps them, `just tm-sandbox` does the same for
+sandbox projects, and `just tm-configs --dry-run` reports what would change and writes nothing:
 
 ```bash
-just tm                   # regenerate production configs, then sweep them
-just tm-sandbox           # the same for sandbox projects
-just tm-configs --dry-run # see what would change, write nothing
+just tm
+just tm-sandbox
+just tm-configs --dry-run
 ```
 
 `scripts/tm_configs.py` reads
 `/projects/queries/active/?interval=24` (the API caps the interval at 24 hours,
-and `&sandbox=true` selects sandbox projects), writes one config per project,
-and removes configs for projects that are no longer active.
+and `&sandbox=true` selects sandbox projects), and writes one config per project.
+Configs are kept until removed by hand, because the API reports only what changed in the
+interval.
 
 A project has no country code, so its identity is the project id through
 `output.s3.folder`, which puts artifacts at
-`TM/{project_id}/hotosm_project_{project_id}_{category}_{format}.zip`. Because
-there is no country, the extract comes from a planet PBF clipped to the project
-polygon rather than from a Geofabrik country extract. Set the PBF with
-`TM_PBF`, and `TM_SANDBOX_PBF` for sandbox projects. Categories follow each
-project's mapping types.
+`TM/hotosm_project_{id}/{category}/{geometry}/hotosm_project_{id}_{category}_{geometry}_{format}.zip`.
+With no country, the extract comes from a planet PBF clipped to the project polygon.
+Set the PBF with `TM_PBF`. Categories follow each project's mapping types.
 
 `--extract` cuts every project's PBF in a single osmium pass and points each
 config at its own small file. osmium streams the whole input once per
@@ -149,11 +97,25 @@ it, each config points at the whole source PBF instead.
 A project whose extract comes out empty is reported, because that means the
 source PBF does not cover it and the export would publish nothing.
 
+## Publishing alongside an export
+
+Two resources belong on a dataset that `oex` does not produce, so each has its own
+script and `just` recipe.
+
+`just tm-boundaries` publishes the project boundaries of a Tasking Manager campaign
+as one GeoJSON, so a dataset shows where mapping was organised and how far each task
+got. Campaigns are listed in `configs/tm_campaigns.yaml`, keyed by their exact name
+in the Tasking Manager. Add `--dry-run` to see what
+would be published.
+
+`just source-geometry CONFIG NAME` publishes the geometry a boundary was derived
+from. `oex` publishes the extraction boundary as the Area of Interest resource, so
+this matters only when `boundary.buffer_meters` widens it, and the config is refused
+without a buffer. The uploaded filename becomes the resource's public URL, so pass
+`--file-name` to keep an existing resource at the address people already have.
+
 ## Bumping the HOT schema
 
-`configs/_hot-schema.yaml` is vendored from oex's
-`configs/examples/hot-schema.yaml`. Replace the file and commit the diff.
-
-## Docs
-
-- [`docs/managing-hdx.md`](docs/managing-hdx.md)
+`configs/_hot-schema.yaml` holds the layer list and the HDX metadata prose for the
+country exports. oex ships a similar example at `configs/examples/hot-schema.yaml`.
+Reconcile the two by hand when the upstream example changes.

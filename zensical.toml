@@ -1,0 +1,102 @@
+[project]
+site_name = "HOT country exports"
+site_url = "https://hotosm.github.io/osm-country-exports/"
+site_description = "OpenStreetMap layers per country, published to HDX and a STAC catalog by HOT."
+site_author = "Humanitarian OpenStreetMap Team"
+copyright = "Copyright &copy; 2026 Humanitarian OpenStreetMap Team"
+
+repo_url = "https://github.com/hotosm/osm-country-exports"
+repo_name = "hotosm/osm-country-exports"
+edit_uri = "edit/main/docs/"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Use the data" = [
+    { "Find datasets" = "use/find-datasets.md" },
+    { "QGIS" = "use/qgis.md" },
+    { "DuckDB" = "use/duckdb.md" },
+    { "Other tools" = "use/other-tools.md" },
+  ] },
+  { "Reference" = [
+    { "What the exports contain" = "reference/contents.md" },
+    { "The schedule" = "reference/schedule.md" },
+  ] },
+  { "Maintain" = [
+    { "Edit a country" = "maintain/edit-a-country.md" },
+    { "Add an event" = "maintain/add-an-event.md" },
+    { "Run and operate" = "maintain/operate.md" },
+  ] },
+]
+
+[project.theme]
+language = "en"
+features = [
+  "content.action.edit",
+  "content.action.view",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "toc.follow",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/hotosm/osm-country-exports"
+
+[project.markdown_extensions]
+abbr = {}
+admonition = {}
+attr_list = {}
+def_list = {}
+footnotes = {}
+md_in_html = {}
+toc.permalink = true
+pymdownx.arithmatex.generic = true
+pymdownx.betterem = {}
+pymdownx.caret = {}
+pymdownx.details = {}
+pymdownx.emoji.emoji_generator = "zensical.extensions.emoji.to_svg"
+pymdownx.emoji.emoji_index = "zensical.extensions.emoji.twemoji"
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.line_spans = "__span"
+pymdownx.highlight.pygments_lang_class = true
+pymdownx.inlinehilite = {}
+pymdownx.keys = {}
+pymdownx.magiclink = {}
+pymdownx.mark = {}
+pymdownx.smartsymbols = {}
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+pymdownx.tabbed.alternate_style = true
+pymdownx.tabbed.combine_header_slug = true
+pymdownx.tasklist.custom_checkbox = true
+pymdownx.tilde = {}

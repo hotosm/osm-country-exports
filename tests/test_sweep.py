@@ -1,9 +1,14 @@
+import sys
+import threading
+import time
 from datetime import date
+from pathlib import Path
 
 import pytest
-import sweep
 import yaml
 from oex.config.loader import load_config
+
+import sweep
 
 TODAY = date(2026, 8, 5)
 
@@ -212,17 +217,22 @@ def test_a_config_with_every_source_disabled_is_an_error(events_dir):
         resolve({"groups": ["events"], "events": {"dir": "configs/events"}})
 
 
-def test_no_hdx_push_reaches_every_command_line():
+def test_no_hdx_push_reaches_every_command_line(tmp_path, monkeypatch):
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
     jobs, _ = sweep.resolve(
         countries_schedule({"NPL": "monthly"}), None, None, TODAY, ("--no-hdx-push",)
     )
     assert jobs[0].argv()[-1] == "--no-hdx-push"
 
 
-def test_a_country_without_an_override_uses_base_directly():
-    jobs, _ = resolve(countries_schedule({"NPL": "monthly"}))
-    assert jobs[0].config == sweep.BASE_CONFIG
+def test_a_country_without_an_override_still_gets_a_merged_config(tmp_path, monkeypatch):
+    """Every job carries its schedule frequency, which oex publishes to HDX."""
+    monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    jobs, _ = resolve(countries_schedule({"NPL": "weekly"}))
     assert jobs[0].iso3 == "NPL"
+    assert jobs[0].config != sweep.BASE_CONFIG
+    assert yaml.safe_load(jobs[0].config.read_text(encoding="utf-8"))["frequency"] == "weekly"
 
 
 def test_a_country_override_is_merged_over_base_not_substituted(tmp_path, monkeypatch):
@@ -233,12 +243,13 @@ def test_a_country_override_is_merged_over_base_not_substituted(tmp_path, monkey
     monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", overrides)
     monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
 
-    merged = yaml.safe_load(sweep.country_config("SDN").read_text(encoding="utf-8"))
+    merged = yaml.safe_load(sweep.country_config("SDN", "weekly").read_text(encoding="utf-8"))
     base = yaml.safe_load(sweep.BASE_CONFIG.read_text(encoding="utf-8"))
     assert merged["dataset_name"] == "Sudan"
     assert merged["hdx"]["push"] == base["hdx"]["push"]
     assert merged["categories_file"] == base["categories_file"]
     assert "${oc.env:HDX_API_KEY}" in merged["hdx"]["api_key"]
+    assert merged["frequency"] == "weekly"
 
 
 def test_a_merged_country_config_loads_the_same_way_base_does(tmp_path, monkeypatch):
@@ -250,8 +261,9 @@ def test_a_merged_country_config_loads_the_same_way_base_does(tmp_path, monkeypa
     monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", overrides)
     monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
 
-    base = load_config(sweep.BASE_CONFIG)
-    merged = load_config(sweep.country_config("SDN"))
+    # The sweep always passes --iso3, and pcode tagging refuses a config without one.
+    base = load_config(sweep.BASE_CONFIG, ["iso3=SDN"])
+    merged = load_config(sweep.country_config("SDN", "monthly"), ["iso3=SDN"])
     assert merged.hdx.push == base.hdx.push is True
     assert merged.output.s3.enabled == base.output.s3.enabled is True
     assert len(merged.categories) == len(base.categories)
@@ -270,7 +282,7 @@ class StubJob:
 def test_a_failing_job_is_reported_and_the_sweep_continues(capsys):
     jobs = [StubJob("a", ["false"]), StubJob("b", ["true"])]
     assert sweep.run_jobs(jobs, timeout=30) == ["a"]
-    assert "[2/2] b" in capsys.readouterr().out
+    assert "[2/2] b done" in capsys.readouterr().out
 
 
 def test_a_job_that_overruns_its_timeout_is_a_failure(capsys):
@@ -287,8 +299,186 @@ def test_a_second_sweep_cannot_take_the_lock(tmp_path, monkeypatch):
     assert sweep.acquire_lock() is not None
 
 
-def test_the_shipped_schedule_resolves():
+def test_the_shipped_schedule_resolves(tmp_path, monkeypatch):
+    """An exact job count breaks on every legitimate schedule edit, so assert the shape."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
     schedule = yaml.safe_load(sweep.SCHEDULE_FILE.read_text(encoding="utf-8"))
-    jobs, _ = resolve(schedule, frequency="monthly")
-    assert len(jobs) == 248
-    assert all(job.command == "osm" for job in jobs)
+    jobs, skipped = resolve(schedule, frequency="monthly")
+    assert jobs
+    assert skipped == []
+    assert all(job.command in sweep.COMMAND_SOURCES for job in jobs)
+    country_jobs = [job for job in jobs if job.group != "events"]
+    assert all(len(job.iso3) == 3 and job.iso3.isupper() for job in country_jobs)
+    assert len({job.id for job in jobs}) == len(jobs)
+
+
+def test_a_dir_group_skips_underscore_partials(tmp_path, monkeypatch):
+    """A shared categories file is included by another config, not a job of its own."""
+    folder = tmp_path / "events"
+    folder.mkdir()
+    (folder / "real.yaml").write_text(OSM_CONFIG, encoding="utf-8")
+    (folder / "_shared-categories.yaml").write_text("categories: []\n", encoding="utf-8")
+    monkeypatch.setattr(sweep, "REPO_ROOT", tmp_path)
+    schedule = {"groups": ["events"], "events": {"dir": "events", "frequency": "daily"}}
+    jobs, _ = resolve(schedule, frequency="daily")
+    assert [job.config.name for job in jobs] == ["real.yaml"]
+
+
+def test_no_resume_reaches_the_oex_command(monkeypatch, tmp_path):
+    """A stale snapshot label can make resume skip a country, so operators need an override."""
+    seen = main_with(monkeypatch, tmp_path, ["--no-resume"], countries_schedule({"NPL": "monthly"}))
+    assert seen["jobs"][0].argv()[-1] == "--no-resume"
+
+
+def test_only_narrows_the_job_list(tmp_path, monkeypatch):
+    """A multi-day sweep gets interrupted, and rerunning every country is not the fix."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    jobs, _ = resolve(countries_schedule({"NPL": "monthly", "SDN": "monthly", "TCD": "monthly"}))
+    assert [j.iso3 for j in sweep.select_countries(jobs, "NPL,TCD")] == ["NPL", "TCD"]
+
+
+def test_only_rejects_a_code_with_no_job(tmp_path, monkeypatch):
+    """Silently running nothing would look like success on a resumed sweep."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    jobs, _ = resolve(countries_schedule({"NPL": "monthly"}))
+    with pytest.raises(sweep.ScheduleError, match="VNM"):
+        sweep.select_countries(jobs, "NPL,VNM")
+
+
+def test_workers_bound_peak_concurrency(tmp_path, monkeypatch):
+    """--workers jobs run at once while more are queued, and never more than that."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    peak = 0
+    running = 0
+    lock = threading.Lock()
+
+    def observe(job, timeout, capture_dir, progress):
+        nonlocal peak, running
+        with lock:
+            running += 1
+            peak = max(peak, running)
+        time.sleep(0.2)
+        with lock:
+            running -= 1
+        return None
+
+    monkeypatch.setattr(sweep, "run_job", observe)
+    sweep.run_jobs([StubJob(f"j{i}", ["true"]) for i in range(8)], timeout=30, workers=3)
+    assert peak == 3, f"peak concurrency was {peak}, expected 3"
+
+
+def test_one_failing_job_does_not_stop_the_rest(tmp_path, monkeypatch):
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    jobs = [StubJob("bad", ["false"]), StubJob("good", ["true"]), StubJob("bad2", ["false"])]
+    assert sorted(sweep.run_jobs(jobs, timeout=30, workers=2)) == ["bad", "bad2"]
+
+
+def test_a_single_worker_writes_no_capture_files(tmp_path, monkeypatch):
+    """One worker needs no per-job log; its output belongs on the sweep's stdout."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    assert sweep.run_jobs([StubJob("a", ["true"])], timeout=30, workers=1) == []
+    assert not (tmp_path / "logs").exists()
+
+
+def test_parallel_workers_capture_each_job_separately(tmp_path, monkeypatch):
+    """Four concurrent exports interleaved into one stream cannot be read afterwards."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    sweep.run_jobs([StubJob("x/y", ["echo", "hello"])], timeout=30, workers=2)
+    assert (tmp_path / "logs" / "x_y.log").read_text().strip() == "hello"
+
+
+def test_the_memory_budget_is_divided_between_workers(monkeypatch):
+    """oex gives every export its adaptive share of memory; concurrent ones must split it."""
+    monkeypatch.setattr(sweep, "adaptive_parallel_resources", lambda: (1, 38))
+    assert sweep.memory_gb_per_worker(1) == 38
+    assert sweep.memory_gb_per_worker(4) == 9
+
+
+def test_the_budget_never_drops_below_one_gb(monkeypatch):
+    monkeypatch.setattr(sweep, "adaptive_parallel_resources", lambda: (1, 1))
+    assert sweep.memory_gb_per_worker(8) == 1
+
+
+def test_the_budget_reaches_the_merged_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    merged = yaml.safe_load(sweep.country_config("SDN", "monthly", 7).read_text(encoding="utf-8"))
+    assert merged["parallel"]["memory_gb"] == 7
+
+
+def test_no_budget_leaves_the_config_untouched(tmp_path, monkeypatch):
+    monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    merged = yaml.safe_load(sweep.country_config("SDN", "monthly").read_text(encoding="utf-8"))
+    assert "memory_gb" not in (merged.get("parallel") or {})
+
+
+def test_an_unrunnable_job_does_not_discard_its_siblings(tmp_path, monkeypatch):
+    """pool.map re-raises on iteration, which would throw away every other result."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    jobs = [StubJob("missing", ["/nonexistent/binary"]), StubJob("fine", ["true"])]
+    assert sweep.run_jobs(jobs, timeout=30, workers=2) == ["missing"]
+
+
+def test_a_failure_names_the_log_that_holds_its_output(tmp_path, monkeypatch, capsys):
+    """With output captured per job, a bare FAILED line leaves nowhere to look."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    sweep.run_jobs([StubJob("bad", ["false"])], timeout=30, workers=2)
+    assert "bad.log" in capsys.readouterr().err
+
+
+def test_an_unwritable_log_directory_fails_one_job_not_the_sweep(tmp_path, monkeypatch):
+    """The capture setup runs per job, so its errors belong to that job's handler."""
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs").chmod(0o500)
+    try:
+        jobs = [StubJob("a", ["true"]), StubJob("b", ["true"])]
+        assert sorted(sweep.run_jobs(jobs, timeout=30, workers=2)) == ["a", "b"]
+    finally:
+        (tmp_path / "logs").chmod(0o700)
+
+
+def main_with(monkeypatch, tmp_path, argv, schedule):
+    """Drive main() end to end, returning the (jobs, timeout, workers) it would run."""
+    schedule_file = tmp_path / "schedule.yaml"
+    schedule_file.write_text(yaml.safe_dump(schedule), encoding="utf-8")
+    monkeypatch.setattr(sweep, "SCHEDULE_FILE", schedule_file)
+    monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    monkeypatch.setattr(sweep, "acquire_lock", lambda: object())
+    monkeypatch.setattr(sys, "argv", ["sweep", *argv])
+    seen = {}
+
+    def record(jobs, timeout, workers):
+        seen.update(jobs=jobs, timeout=timeout, workers=workers)
+        return []
+
+    monkeypatch.setattr(sweep, "run_jobs", record)
+    assert sweep.main() == 0
+    return seen
+
+
+def test_only_narrows_the_run_to_the_named_countries(monkeypatch, tmp_path):
+    seen = main_with(
+        monkeypatch,
+        tmp_path,
+        ["--only", "NPL"],
+        countries_schedule({"NPL": "monthly", "HTI": "monthly", "CHL": "monthly"}),
+    )
+    assert [job.iso3 for job in seen["jobs"]] == ["NPL"]
+
+
+def test_workers_reaches_run_jobs(monkeypatch, tmp_path):
+    seen = main_with(
+        monkeypatch, tmp_path, ["--workers", "3"], countries_schedule({"NPL": "monthly"})
+    )
+    assert seen["workers"] == 3
+
+
+def test_more_than_one_worker_gives_each_country_a_memory_budget(monkeypatch, tmp_path):
+    seen = main_with(
+        monkeypatch, tmp_path, ["--workers", "4"], countries_schedule({"NPL": "monthly"})
+    )
+    merged = yaml.safe_load(Path(seen["jobs"][0].config).read_text(encoding="utf-8"))
+    assert merged["parallel"]["memory_gb"] == sweep.memory_gb_per_worker(4)

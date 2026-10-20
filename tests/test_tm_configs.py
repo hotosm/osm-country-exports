@@ -1,9 +1,11 @@
 import json
+from typing import cast
 
 import pytest
-import tm_configs
 from omegaconf import OmegaConf
 from upath import UPath
+
+import tm_configs
 
 TEMPLATE = OmegaConf.create(tm_configs.TEMPLATE.read_text(encoding="utf-8"))
 GEOM = {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]}
@@ -87,17 +89,19 @@ def test_a_project_with_no_supported_mapping_type_is_not_generated():
     assert build(mapping_types=(99,)) is None
 
 
-def pbf_path(cfg):
+def pbf_path(cfg) -> str:
     """Unresolved, so the assertion does not depend on the environment."""
-    return OmegaConf.to_container(cfg, resolve=False)["source"]["osm"]["pbf_path"]
+    container = cast(dict, OmegaConf.to_container(cfg, resolve=False))
+    return container["source"]["osm"]["pbf_path"]
 
 
 def test_production_reads_the_planet_pbf_from_the_environment():
     assert pbf_path(build()) == "${oc.env:TM_PBF}"
 
 
-def test_sandbox_reads_its_own_pbf_from_the_environment():
-    assert pbf_path(build(sandbox=True)) == "${oc.env:TM_SANDBOX_PBF}"
+def test_every_project_reads_the_pbf_from_one_environment_variable():
+    assert pbf_path(build(sandbox=True)) == f"${{oc.env:{tm_configs.PBF_ENV}}}"
+    assert pbf_path(build(sandbox=False)) == f"${{oc.env:{tm_configs.PBF_ENV}}}"
 
 
 def test_the_template_is_never_mutated_between_projects():
@@ -112,30 +116,27 @@ def test_an_interval_beyond_the_api_cap_is_rejected():
 
 
 def test_sync_writes_new_configs(tmp_path):
-    written, pruned = tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=False)
-    assert (written, pruned) == (1, 0)
+    assert tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=False) == 1
     assert (tmp_path / "1.yaml").exists()
 
 
 def test_sync_leaves_unchanged_configs_alone(tmp_path):
     configs = {"1.yaml": build(1)}
     tm_configs.sync(tmp_path, configs, dry_run=False)
-    written, pruned = tm_configs.sync(tmp_path, configs, dry_run=False)
-    assert (written, pruned) == (0, 0)
+    assert tm_configs.sync(tmp_path, configs, dry_run=False) == 0
 
 
-def test_sync_prunes_projects_that_are_no_longer_active(tmp_path):
+def test_a_config_missing_from_the_api_is_kept(tmp_path):
+    """The API reports what moved in the interval, so its silence is not a delete signal."""
     tm_configs.sync(tmp_path, {"1.yaml": build(1), "2.yaml": build(2)}, dry_run=False)
-    written, pruned = tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=False)
-    assert pruned == 1
-    assert not (tmp_path / "2.yaml").exists()
+    assert tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=False) == 0
+    assert (tmp_path / "2.yaml").exists()
     assert (tmp_path / "1.yaml").exists()
 
 
 def test_dry_run_touches_nothing(tmp_path):
     (tmp_path / "9.yaml").write_text("stale", encoding="utf-8")
-    written, pruned = tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=True)
-    assert (written, pruned) == (1, 1)
+    assert tm_configs.sync(tmp_path, {"1.yaml": build(1)}, dry_run=True) == 1
     assert not (tmp_path / "1.yaml").exists()
     assert (tmp_path / "9.yaml").read_text(encoding="utf-8") == "stale"
 
@@ -208,7 +209,7 @@ def test_extract_rejects_a_source_that_is_not_there(tmp_path, monkeypatch):
         tm_configs.cut_project_extracts([feature(1, [2])], sandbox=False, pbf_dir=tmp_path)
 
 
-def test_sandbox_extract_reads_its_own_source_variable(tmp_path, monkeypatch):
-    monkeypatch.delenv(tm_configs.SANDBOX_PBF_ENV, raising=False)
-    with pytest.raises(tm_configs.TaskingManagerError, match=tm_configs.SANDBOX_PBF_ENV):
+def test_an_extract_without_the_source_variable_fails(tmp_path, monkeypatch):
+    monkeypatch.delenv(tm_configs.PBF_ENV, raising=False)
+    with pytest.raises(tm_configs.TaskingManagerError, match=tm_configs.PBF_ENV):
         tm_configs.cut_project_extracts([feature(1, [2])], sandbox=True, pbf_dir=tmp_path)

@@ -5,17 +5,27 @@ subnational: true
 frequency: monthly
 
 boundary:
-  geoboundaries_release: CGAZ
   geoboundaries_level: ADM0
   buffer_meters: 0
 
 output:
   dir: ${oc.env:OEX_DATA_DIR,.}/output
-  formats: [gpkg, shp]
+  formats: [gpkg, shp, geoparquet]
   metadata: true
   resume: true
   report:
     enabled: true
+    related_datasets: true
+    theme:
+      accent_color: "#cc2936"
+      map_popup_color: "#cc2936"
+  pmtiles:
+    enabled: true
+  stac:
+    catalog: true
+    id: hotosm-country-exports
+    title: HOT OpenStreetMap country exports
+    description: OpenStreetMap layers per country, published to HDX by HOT.
   s3:
     enabled: true
     bucket: ${oc.env:OEX_S3_BUCKET}

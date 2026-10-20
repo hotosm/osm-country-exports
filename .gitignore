@@ -26,3 +26,9 @@ configs/tasking_manager_sandbox/*.yaml
 # per-project PBFs cut by tm_configs.py --extract
 data/tm/
 data/tm_sandbox/
+
+# local assistant state
+.claude/
+
+# zensical build output
+site/

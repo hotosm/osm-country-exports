@@ -14,3 +14,10 @@ useful when you want to see exactly what ran. Interpolations such as
 `${oc.env:HDX_API_KEY}` are left unresolved, so no secret is written to it.
 
 The CLI `--iso3` flag still wins over any `iso3:` set inside the file.
+
+## Territories without an ADM0 boundary
+
+geoBoundaries gbOpen publishes no ADM0 for some territories, so a scheduled run
+for one fails at boundary resolution. Those files carry an inline
+`boundary.geom` taken from Natural Earth 10m admin-0 map units, simplified to
+six decimal places, and each names its place in a one-line comment.

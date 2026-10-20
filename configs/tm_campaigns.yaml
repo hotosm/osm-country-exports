@@ -1,0 +1,6 @@
+# Tasking Manager campaigns, keyed by exact name, whose project boundaries publish to HDX.
+# Each entry sets `dataset` and `iso3`; `resource`, `file`, `category` and `enabled` are optional.
+
+"2026 Nepal Floods":
+  dataset: hot_flood_npl
+  iso3: NPL

@@ -1,0 +1,871 @@
+# Layers shared by the Nepal flood datasets, referenced through `categories_file:`
+# so the flood-extent and corridor exports cannot drift apart.
+categories:
+  - name: buildings
+    skip_pcodes: false
+    boundary_resolution: h3_neighbor
+    hdx:
+      title: Buildings
+      summary: Building footprints, from homes to hospitals, schools and places of worship. Standing and destroyed together, split by status.
+      notes: |
+        Building footprints across the region, from residential homes to hospitals, schools and places of worship. Useful for population estimation, damage assessment, and urban planning.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [building](https://wiki.openstreetmap.org/wiki/Key:building)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      # Destroyed buildings lose the plain `building` tag, so they are kept here too.
+      filter:
+        building: true
+        destroyed:building: true
+        damaged:building: true
+        damage:building: true
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - &status "CASE WHEN len(list_filter(map_keys(tags), k -> starts_with(k, 'destroyed:'))) > 0 THEN 'Destroyed' WHEN len(list_filter(map_keys(tags), k -> starts_with(k, 'damaged:'))) > 0 OR tags['damage:building'] IS NOT NULL THEN 'Damaged' ELSE 'Standing' END AS status"
+        - "coalesce(tags['building'], tags['destroyed:building'], tags['damaged:building'], tags['damage:building']) AS building"
+        - tags['building:levels'] AS building_levels
+        - tags['building:materials'] AS building_materials
+        - tags['was:building:levels'] AS was_building_levels
+        - tags['damage:type'] AS damage_type
+        - tags['end_date'] AS end_date
+        - tags['addr:full'] AS addr_full
+        - tags['addr:housenumber'] AS addr_housenumber
+        - tags['addr:street'] AS addr_street
+        - tags['addr:city'] AS addr_city
+        - tags['office'] AS office
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: destroyed_features
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Destroyed and Damaged Features
+      summary: Buildings, roads, bridges, waterways and other features mappers recorded as destroyed or damaged during the response.
+      notes: |
+        Buildings, roads, bridges, waterways and other features that mappers have recorded as destroyed or damaged during the response. `status` says destroyed or damaged, and `feature_type` says what the feature was.
+
+        These features also appear in the Buildings, Roads and Bridges layers, which carry what is standing and what has been lost together. This layer gathers everything recorded as destroyed or damaged in one place.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [lifecycle prefix](https://wiki.openstreetmap.org/wiki/Lifecycle_prefix), [damage](https://wiki.openstreetmap.org/wiki/Key:damage)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [damage assessment, affected area, flooding, facilities-infrastructure, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: Volunteer damage mapping from imagery, not a verified ground assessment, and cannot be considered exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        destroyed:building: true
+        destroyed:building:part: true
+        destroyed:highway: true
+        destroyed:bridge: true
+        destroyed:tunnel: true
+        destroyed:waterway: true
+        destroyed:aeroway: true
+        destroyed:power: true
+        destroyed:amenity: true
+        destroyed:shop: true
+        destroyed:tourism: true
+        destroyed:leisure: true
+        destroyed:man_made: true
+        destroyed:barrier: true
+        destroyed:landuse: true
+        destroyed:natural: true
+        destroyed:office: true
+        destroyed:sport: true
+        destroyed:parking: true
+        damaged:building: true
+        damaged:aeroway: true
+        damage:building: true
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "CASE WHEN tags['destroyed:building'] IS NOT NULL OR tags['damaged:building'] IS NOT NULL OR tags['damage:building'] IS NOT NULL THEN 'building' WHEN tags['destroyed:building:part'] IS NOT NULL THEN 'building part' WHEN tags['destroyed:bridge'] IS NOT NULL THEN 'bridge' WHEN tags['destroyed:tunnel'] IS NOT NULL THEN 'tunnel' WHEN tags['destroyed:highway'] IS NOT NULL THEN 'road' WHEN tags['destroyed:waterway'] IS NOT NULL THEN 'waterway' WHEN tags['destroyed:aeroway'] IS NOT NULL OR tags['damaged:aeroway'] IS NOT NULL THEN 'aeroway' WHEN tags['destroyed:power'] IS NOT NULL THEN 'power' WHEN tags['destroyed:amenity'] IS NOT NULL THEN 'amenity' WHEN tags['destroyed:shop'] IS NOT NULL THEN 'shop' WHEN tags['destroyed:tourism'] IS NOT NULL THEN 'tourism' WHEN tags['destroyed:leisure'] IS NOT NULL THEN 'leisure' WHEN tags['destroyed:man_made'] IS NOT NULL THEN 'man made' WHEN tags['destroyed:barrier'] IS NOT NULL THEN 'barrier' WHEN tags['destroyed:landuse'] IS NOT NULL THEN 'land use' WHEN tags['destroyed:natural'] IS NOT NULL THEN 'natural' ELSE 'other' END AS feature_type"
+        - tags['damage:type'] AS damage_type
+        - tags['damage:event'] AS damage_event
+        - tags['damage:date'] AS damage_date
+        - tags['end_date'] AS end_date
+        - tags['was:building:levels'] AS was_building_levels
+        - tags['destroyed:building'] AS destroyed_building
+        - tags['destroyed:highway'] AS destroyed_highway
+        - tags['destroyed:bridge'] AS destroyed_bridge
+        - tags['destroyed:waterway'] AS destroyed_waterway
+        - tags['destroyed:amenity'] AS destroyed_amenity
+        - tags['damaged:building'] AS damaged_building
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: roads
+    boundary_resolution: h3_neighbor
+    hdx:
+      title: Roads
+      summary: Motorways, residential streets, service roads, tracks, footways and trails, with surface and width where recorded.
+      notes: |
+        Road network across the region tagged `highway=*`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [highway](https://wiki.openstreetmap.org/wiki/Key:highway)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [geodata, roads, transportation]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        highway: true
+        destroyed:highway: true
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['highway'], tags['destroyed:highway']) AS highway"
+        - tags['surface'] AS surface
+        - tags['smoothness'] AS smoothness
+        - tags['width'] AS width
+        - tags['lanes'] AS lanes
+        - tags['oneway'] AS oneway
+        - tags['bridge'] AS bridge
+        - tags['layer'] AS layer
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: waterways
+    formats: [gpkg, shp, geojson, kml]
+    boundary_resolution: h3_neighbor
+    hdx:
+      title: Waterways
+      summary: Rivers, streams, canals, lakes, ponds and wetlands.
+      notes: |
+        Water features across the region: rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [waterway](https://wiki.openstreetmap.org/wiki/Key:waterway), [water](https://wiki.openstreetmap.org/wiki/Key:water), [natural](https://wiki.openstreetmap.org/wiki/Key:natural)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [geodata, hydrology, rivers]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        waterway: true
+        water: true
+        natural: [water, wetland, bay]
+        destroyed:waterway: true
+        destroyed:natural: [water, wetland, bay]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['waterway'], tags['destroyed:waterway']) AS waterway"
+        - tags['covered'] AS covered
+        - tags['width'] AS width
+        - tags['depth'] AS depth
+        - tags['layer'] AS layer
+        - tags['blockage'] AS blockage
+        - tags['tunnel'] AS tunnel
+        - "coalesce(tags['natural'], tags['destroyed:natural']) AS natural_class"
+        - tags['water'] AS water
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: railways
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Railways
+      summary: Rail lines, tram tracks and stations.
+      notes: |
+        Railway lines and stations tagged `railway=*`: rail lines, tram tracks, and stations. Useful for transport accessibility analysis and basemap context.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [railway](https://wiki.openstreetmap.org/wiki/Key:railway)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata, railways, transportation]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        railway: [rail, station]
+        destroyed:railway: [rail, station]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['railway'], tags['destroyed:railway']) AS railway"
+        - tags['ele'] AS ele
+        - tags['operator:type'] AS operator_type
+        - tags['layer'] AS layer
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: bridges
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Bridges
+      summary: Road, track, footway and aqueduct crossings, with the road class each one carries.
+      notes: |
+        Bridges tagged `bridge=*` or `man_made=bridge`: road, track, footway and aqueduct crossings, together with the road class each one carries. River crossings are the assets a flood removes first, and losing one can isolate settlements upstream, so this layer is separated from the road network for faster access analysis.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [bridge](https://wiki.openstreetmap.org/wiki/Key:bridge), [man_made=bridge](https://wiki.openstreetmap.org/wiki/Tag:man_made%3Dbridge)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata, logistics, roads, transportation]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        bridge: true
+        man_made: [bridge]
+        destroyed:bridge: true
+        destroyed:man_made: [bridge]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['bridge'], tags['destroyed:bridge']) AS bridge"
+        - tags['bridge:structure'] AS bridge_structure
+        - tags['highway'] AS highway
+        - tags['railway'] AS railway
+        - tags['waterway'] AS waterway
+        - "coalesce(tags['man_made'], tags['destroyed:man_made']) AS man_made"
+        - tags['layer'] AS layer
+        - tags['width'] AS width
+        - tags['maxweight'] AS maxweight
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: education_facilities
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Education Facilities
+      summary: Schools, kindergartens, colleges and universities.
+      notes: |
+        Education facilities: schools, kindergartens, colleges, and universities tagged via `amenity` or `building`. Useful for school-access mapping, education planning, and resource allocation.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [education facilities-schools, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        amenity: [kindergarten, school, college, university]
+        building: [kindergarten, school, college, university]
+        destroyed:amenity: [kindergarten, school, college, university]
+        destroyed:building: [kindergarten, school, college, university]
+        damaged:building: [kindergarten, school, college, university]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - "coalesce(tags['building'], tags['destroyed:building'], tags['damaged:building'], tags['damage:building']) AS building"
+        - tags['operator:type'] AS operator_type
+        - tags['capacity:persons'] AS capacity_persons
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: true
+      theme: places
+      feature_type: place
+      select:
+        - id
+        - names.primary AS name
+        - names.common->>'en' AS name_en
+        - categories.primary AS category
+        - addresses[1].freeform AS address
+        - phones[1] AS phone
+        - websites[1] AS website
+        - confidence
+        - sources[1].dataset AS source
+      where:
+        - "categories.primary IN ('education', 'school', 'preschool', 'elementary_school', 'middle_school', 'high_school', 'public_school', 'private_school', 'college_university', 'educational_services')"
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: health_facilities
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Health Facilities
+      summary: Hospitals, clinics, pharmacies, doctors and dentists.
+      notes: |
+        Health facilities: hospitals, clinics, pharmacies, doctors, and dentists tagged via `amenity` or `healthcare`. Useful for service-access analysis, emergency response, and healthcare gap mapping.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [healthcare](https://wiki.openstreetmap.org/wiki/Key:healthcare)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [geodata, health, health facilities]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        healthcare: true
+        amenity: [doctors, dentist, clinic, hospital, pharmacy]
+        destroyed:amenity: [doctors, dentist, clinic, hospital, pharmacy]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - tags['building'] AS building
+        - tags['healthcare'] AS healthcare
+        - tags['healthcare:speciality'] AS healthcare_speciality
+        - tags['operator:type'] AS operator_type
+        - tags['capacity:persons'] AS capacity_persons
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: true
+      theme: places
+      feature_type: place
+      select:
+        - id
+        - names.primary AS name
+        - names.common->>'en' AS name_en
+        - categories.primary AS category
+        - addresses[1].freeform AS address
+        - phones[1] AS phone
+        - websites[1] AS website
+        - confidence
+        - sources[1].dataset AS source
+      where:
+        - "categories.primary IN ('hospital', 'health_and_medical', 'medical_center', 'urgent_care_clinic', 'mobile_clinic', 'storefront_clinic', 'pharmacy', 'drugstore', 'doctor', 'dentist', 'emergency_medicine', 'blood_and_plasma_donation_center')"
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: populated_places
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Settlement Names
+      summary: Named cities, towns, villages, hamlets and isolated dwellings, as points.
+      notes: |
+        Named cities, towns, villages, suburbs, hamlets and isolated dwellings, as points. Useful for demographic context, settlement-level targeting and population analysis. Residential land itself is a separate layer.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [place](https://wiki.openstreetmap.org/wiki/Key:place)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [geodata, populated places-settlements]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        place: [isolated_dwelling, town, village, hamlet, city]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - tags['place'] AS place
+        - tags['population'] AS population
+        - tags['is_in'] AS is_in
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: residential_areas
+    formats: [gpkg, shp, geojson, kml]
+    boundary_resolution: h3_neighbor
+    hdx:
+      title: Residential Areas
+      summary: Land given over to housing, drawn around clusters of buildings as villages, neighbourhoods and settlement footprints.
+      notes: |
+        Land predominantly given over to housing, drawn around clusters of buildings. Volunteers map these during the response so that settlements have a footprint even where individual buildings are not yet traced, which makes them useful for locating population when building coverage is thin.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [landuse=residential](https://wiki.openstreetmap.org/wiki/Tag:landuse%3Dresidential)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [populated places-settlements, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        landuse: [residential]
+        destroyed:landuse: [residential]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['landuse'], tags['destroyed:landuse']) AS landuse"
+        - tags['population'] AS population
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: financial_services
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Financial Services
+      summary: Banks, ATMs, post offices, money transfer agents and microfinance branches.
+      notes: |
+        Financial services: banks, ATMs, post offices, money transfer agents, and microfinance branches tagged via `amenity`. Useful for financial-inclusion mapping, cash-distribution planning, and economic analysis.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [economics, geodata]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        amenity:
+          [
+            mobile_money_agent,
+            bureau_de_change,
+            bank,
+            microfinance,
+            atm,
+            sacco,
+            money_transfer,
+            post_office,
+          ]
+        destroyed:amenity: [mobile_money_agent, bureau_de_change, bank, microfinance, atm, sacco, money_transfer, post_office]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - tags['operator'] AS operator
+        - tags['network'] AS network
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: sea_ports
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Sea Ports
+      summary: Ports and ferry terminals.
+      notes: |
+        Sea ports and ferry terminals tagged via `amenity`, `building`, or `port`. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building), [port](https://wiki.openstreetmap.org/wiki/Key:port)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata, ports]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        amenity: [ferry_terminal]
+        building: [ferry_terminal]
+        port: true
+        destroyed:amenity: [ferry_terminal]
+        destroyed:building: [ferry_terminal]
+        damaged:building: [ferry_terminal]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - "coalesce(tags['building'], tags['destroyed:building'], tags['damaged:building'], tags['damage:building']) AS building"
+        - tags['port'] AS port
+        - tags['operator:type'] AS operator_type
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: points_of_interest
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Points of Interest
+      summary: Public-facing amenities, shops, tourist attractions and landmarks.
+      notes: |
+        Points of interest: public-facing amenities, shops, tourist attractions, and landmarks tagged via `amenity`, `shop`, `tourism`, or `man_made`. Useful for general POI reference, urban analysis, and basemap detail.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [shop](https://wiki.openstreetmap.org/wiki/Key:shop), [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [man_made](https://wiki.openstreetmap.org/wiki/Key:man_made)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata, points of interest-poi]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        amenity: true
+        man_made: true
+        shop: true
+        tourism: true
+        destroyed:amenity: true
+        destroyed:man_made: true
+        destroyed:shop: true
+        destroyed:tourism: true
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - "coalesce(tags['man_made'], tags['destroyed:man_made']) AS man_made"
+        - "coalesce(tags['shop'], tags['destroyed:shop']) AS shop"
+        - "coalesce(tags['tourism'], tags['destroyed:tourism']) AS tourism"
+        - tags['opening_hours'] AS opening_hours
+        - tags['beds'] AS beds
+        - tags['rooms'] AS rooms
+        - tags['addr:full'] AS addr_full
+        - tags['addr:housenumber'] AS addr_housenumber
+        - tags['addr:street'] AS addr_street
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: true
+      theme: places
+      feature_type: place
+      select:
+        - id
+        - names.primary AS name
+        - names.common->>'en' AS name_en
+        - categories.primary AS category
+        - addresses[1].freeform AS address
+        - phones[1] AS phone
+        - websites[1] AS website
+        - confidence
+        - sources[1].dataset AS source
+      where: []
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: open_spaces
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Open Spaces
+      summary: Parks, pitches, playgrounds, recreation grounds, commons, village greens, marketplaces and camp sites, the open ground that can host shelter or relief staging.
+      notes: |
+        Open ground that could host temporary shelter, evacuation assembly or relief staging: parks, pitches, playgrounds, recreation grounds, commons, village greens, marketplaces, camp sites and managed grass. Flood response needs candidate sites on dry, unbuilt ground, and this layer separates them from the general land use picture.
+
+        Coverage reflects where volunteer mappers have been active. Open space is among the least consistently mapped feature types, so an empty or sparse result indicates a mapping gap rather than an absence of usable ground. Cross-check every candidate site with local field knowledge before use; suitability depends on ownership, access, drainage and elevation, none of which are recorded here.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map, and [Overture Maps](https://overturemaps.org/)
+        - Tags: [leisure](https://wiki.openstreetmap.org/wiki/Key:leisure), [landuse](https://wiki.openstreetmap.org/wiki/Key:landuse)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [camp coordination and camp management-cccm, facilities-infrastructure, geodata, shelter]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        leisure: [park, pitch, recreation_ground, common, garden, playground, sports_centre, stadium, golf_course, track]
+        landuse: [recreation_ground, grass, meadow, village_green, greenfield, farmyard]
+        natural: [grassland, sand, beach]
+        amenity: [marketplace]
+        place: [square]
+        destroyed:leisure: [park, pitch, recreation_ground, common, garden, playground, sports_centre, stadium, golf_course, track]
+        destroyed:landuse: [recreation_ground, grass, meadow, village_green, greenfield, farmyard]
+        destroyed:natural: [grassland, sand, beach]
+        destroyed:amenity: [marketplace]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['leisure'], tags['destroyed:leisure']) AS leisure"
+        - "coalesce(tags['landuse'], tags['destroyed:landuse']) AS landuse"
+        - "coalesce(tags['natural'], tags['destroyed:natural']) AS natural"
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - tags['place'] AS place
+        - tags['surface'] AS surface
+        - tags['access'] AS access
+        - tags['operator'] AS operator
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: helipads
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Helipads
+      summary: Helicopter landing points, including those attached to hospitals and other facilities.
+      notes: |
+        Helicopter landing points tagged `aeroway=helipad`, `aeroway=heliport`, `emergency:helipad=*` or `emergency=landing_site`, including helipads attached to hospitals and other facilities. Where a flood has washed out road bridges, helicopter access becomes the route for evacuation and relief, so landing points are separated from the airports layer to make them directly usable.
+
+        Coverage reflects where volunteer mappers have been active. A helipad recorded here is a mapped location, not a certified or currently serviceable landing site; confirm surface, obstructions, approach and ownership locally before planning an operation.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
+        - Tags: [aeroway=helipad](https://wiki.openstreetmap.org/wiki/Tag:aeroway%3Dhelipad), [emergency:helipad](https://wiki.openstreetmap.org/wiki/Key:emergency)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [aviation, facilities-infrastructure, geodata, logistics, transportation]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        aeroway: [helipad, heliport]
+        emergency: [landing_site]
+        emergency:helipad: true
+        destroyed:aeroway: [helipad, heliport]
+        damaged:aeroway: [helipad, heliport]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['aeroway'], tags['destroyed:aeroway'], tags['damaged:aeroway']) AS aeroway"
+        - tags['emergency'] AS emergency
+        - tags['emergency:helipad'] AS emergency_helipad
+        - tags['amenity'] AS amenity
+        - tags['surface'] AS surface
+        - tags['operator'] AS operator
+        - tags['operator:type'] AS operator_type
+        - tags['access'] AS access
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en
+
+  - name: police_stations
+    formats: [gpkg, shp, geojson, kml]
+    hdx:
+      title: Police Stations
+      summary: Police posts and stations.
+      notes: |
+        Police posts and stations tagged `amenity=police`. Police units coordinate search and rescue, evacuation and site security during a flood response, and their posts are often the first point of contact in rural wards.
+
+        Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
+
+        - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map, and [Overture Maps](https://overturemaps.org/)
+        - Tags: [amenity=police](https://wiki.openstreetmap.org/wiki/Tag:amenity%3Dpolice)
+        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+      tags: [facilities-infrastructure, geodata, protection]
+      license: hdx-odc-odbl
+      license_url: https://opendatacommons.org/licenses/odbl/1-0/
+      caveats: OpenStreetMap data is crowd sourced and cannot be considered to be exhaustive
+      dataset_source: OpenStreetMap contributors
+    osm:
+      enabled: true
+      filter:
+        amenity: [police]
+        destroyed:amenity: [police]
+      select:
+        - feature_id AS id
+        - tags['name'] AS name
+        - tags['name:en'] AS name_en
+        - *status
+        - "coalesce(tags['amenity'], tags['destroyed:amenity']) AS amenity"
+        - tags['operator'] AS operator
+        - tags['operator:type'] AS operator_type
+        - tags['phone'] AS phone
+        - tags['addr:full'] AS addr_full
+        - tags['addr:city'] AS addr_city
+        - tags['source'] AS source
+      where: []
+    overture:
+      enabled: false
+      tiles: false
+    temporal:
+      column: update_time
+
+    transliterate:
+      - target: name_latin
+        source: name
+        prefer: name_en

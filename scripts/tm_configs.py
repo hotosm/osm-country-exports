@@ -8,34 +8,30 @@
 
 Projects have no country code, so each config identifies by project id through
 output.s3.folder and extracts from the planet PBF clipped to the project polygon.
-Configs for projects that are no longer active are removed.
+Configs are never deleted: the API reports what moved in the interval, not
+everything that exists.
 """
 
 import argparse
 import json
-import re
 import os
+import re
 import subprocess
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 from omegaconf import OmegaConf
 from upath import UPath
 
+from tasking_manager import TM_API, TaskingManagerError, fetch_json
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = REPO_ROOT / "configs" / "_tm-template.yaml"
-TM_API_BASE_URL = "https://tasking-manager-production-api.hotosm.org/api/v2"
 MAX_INTERVAL_HOURS = 24
 PBF_ENV = "TM_PBF"
 # TM mapping_types are 1-based indexes into this order.
 MAPPING_TYPES = ("Roads", "Buildings", "Waterways", "Landuse")
 DATE_PREFIX = re.compile(r"\d{4}-\d{2}-\d{2}")
-
-
-class TaskingManagerError(Exception):
-    """The Tasking Manager API returned something unusable."""
 
 
 def _display(path: Path) -> str:
@@ -47,15 +43,10 @@ def fetch_active_projects(interval: int, sandbox: bool, timeout: int) -> list[di
     """Active projects as GeoJSON features. The endpoint caps interval at 24 hours."""
     if not 1 <= interval <= MAX_INTERVAL_HOURS:
         raise TaskingManagerError(f"--interval must be 1..{MAX_INTERVAL_HOURS}, got {interval}")
-    url = f"{TM_API_BASE_URL}/projects/queries/active/?interval={interval}"
+    url = f"{TM_API}/projects/queries/active/?interval={interval}"
     if sandbox:
         url += "&sandbox=true"
-    request = urllib.request.Request(url, headers={"accept": "application/json"})
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.load(response)
-    except (urllib.error.URLError, json.JSONDecodeError) as error:
-        raise TaskingManagerError(f"{url}: {error}") from error
+    payload = fetch_json(url, timeout)
     if "features" not in payload:
         raise TaskingManagerError(f"{url}: no `features` in the response: {payload}")
     return payload["features"]
@@ -63,13 +54,8 @@ def fetch_active_projects(interval: int, sandbox: bool, timeout: int) -> list[di
 
 def fetch_project(project_id: str, timeout: int) -> dict:
     """One project as a GeoJSON feature, whatever its recent activity."""
-    url = f"{TM_API_BASE_URL}/projects/{project_id}/"
-    request = urllib.request.Request(url, headers={"accept": "application/json"})
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.load(response)
-    except (urllib.error.URLError, json.JSONDecodeError) as error:
-        raise TaskingManagerError(f"{url}: {error}") from error
+    url = f"{TM_API}/projects/{project_id}/"
+    payload = fetch_json(url, timeout)
     if "areaOfInterest" not in payload:
         raise TaskingManagerError(f"{url}: no `areaOfInterest` in the response")
     return {
@@ -81,7 +67,7 @@ def fetch_project(project_id: str, timeout: int) -> dict:
     }
 
 
-def category_names(mapping_types: list) -> list[str]:
+def category_names(mapping_types: list | None) -> list[str]:
     """TM mapping types to template category names, dropping ones oex has no filter for.
 
     The API sends 1-based indexes; tm-extractor also accepts names like LAND_USE.
@@ -256,8 +242,6 @@ def node_count(pbf: Path) -> int:
 
 
 def sync(out_dir: Path, configs: dict, dry_run: bool) -> int:
-    """Write changed configs. Nothing is deleted: the API reports what moved in the
-    interval, not everything that exists, so its silence is not a signal to drop a project."""
     written = 0
     for name, cfg in sorted(configs.items()):
         text = OmegaConf.to_yaml(cfg, resolve=False)
@@ -298,7 +282,7 @@ def main() -> int:
         "--interval",
         type=int,
         default=MAX_INTERVAL_HOURS,
-        help=f"hours of activity to consider, 1..{MAX_INTERVAL_HOURS} (default 24); unused with --project",
+        help=f"hours of activity, 1..{MAX_INTERVAL_HOURS} (default 24); unused with --project",
     )
     parser.add_argument("--sandbox", action="store_true", help="sandbox projects")
     parser.add_argument("--out", type=Path, help="output dir (default: the group dir)")

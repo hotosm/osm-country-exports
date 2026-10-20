@@ -4,21 +4,39 @@ version = "0.0.1"
 description = "HOT OSM country-scale HDX exports."
 requires-python = ">=3.11"
 dependencies = [
-    "oex>=0.4.10",
+    "hdx-python-api>=6.6.7",
+    # 0.4.16 adds the STAC catalog and report settings configs/base.yaml uses.
+    "oex>=0.4.16",
     "omegaconf>=2.3.0",
     "pyyaml>=6.0.2",
     "quackosm",
+    "universal-pathlib>=0.3.10",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
     "ruff>=0.13",
+    "ty>=0.0.78",
+]
+docs = [
+    "zensical>=0.0.71",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+src = [".", "scripts"]
+
+[tool.ruff.lint]
+extend-select = ["I", "E501"]
+
+[tool.pytest.ini_options]
+pythonpath = ["scripts"]
+
+[tool.ty.environment]
+# The scripts import one another by module name, as pytest's pythonpath does for the tests.
+extra-paths = ["scripts"]
 
 [tool.uv]
 package = false

@@ -1,6 +1,5 @@
-# HOT-OSM HDX schema: 12 layers
-# the Humanitarian Data Exchange (e.g. hotosm_<iso3>_buildings,
-# hotosm_<iso3>_roads, ...).
+# 12 layers matching the HOT-OSM dataset grid on the Humanitarian Data Exchange
+# (hotosm_<iso3>_buildings, hotosm_<iso3>_roads, and so on).
 
 categories:
   - name: buildings
@@ -9,13 +8,13 @@ categories:
     hdx:
       title: Buildings
       notes: |
-        Building footprints across the region: every feature tagged `building=*`, from residential homes to hospitals, schools, and places of worship. Useful for population estimation, damage assessment, and urban planning.
+        Building footprints across the area: every feature tagged `building=*`, from residential homes to hospitals, schools, and places of worship. Useful for population estimation, damage assessment, and urban planning.
 
         Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [building](https://wiki.openstreetmap.org/wiki/Key:building)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -41,9 +40,6 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
@@ -54,13 +50,13 @@ categories:
     hdx:
       title: Roads
       notes: |
-        Road network across the region tagged `highway=*`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
+        Road network across the area tagged `highway=*`: motorways, residential streets, service roads, footways, and trails. Useful for routing, accessibility analysis, and evacuation planning.
 
         Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [highway](https://wiki.openstreetmap.org/wiki/Key:highway)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, roads, transportation]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -86,27 +82,24 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: waterways
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     boundary_resolution: h3_neighbor
     hdx:
       title: Waterways
       notes: |
-        Water features across the region: rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
+        Water features across the area: rivers, streams, canals, lakes, ponds, and water bodies tagged with `waterway`, `water`, or `natural=water`. Useful for flood-risk modelling, watershed analysis, and environmental basemap context.
 
         Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [waterway](https://wiki.openstreetmap.org/wiki/Key:waterway), [water](https://wiki.openstreetmap.org/wiki/Key:water), [natural](https://wiki.openstreetmap.org/wiki/Key:natural)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, hydrology, rivers]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -135,16 +128,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: railways
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Railways
       notes: |
@@ -154,7 +144,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [railway](https://wiki.openstreetmap.org/wiki/Key:railway)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, railways, transportation]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -178,16 +168,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: education_facilities
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Education Facilities
       notes: |
@@ -197,7 +184,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [education facilities-schools, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -222,16 +209,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: health_facilities
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Health Facilities
       notes: |
@@ -241,7 +225,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [healthcare](https://wiki.openstreetmap.org/wiki/Key:healthcare)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, health, health facilities]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -268,16 +252,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: populated_places
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Populated Places
       notes: |
@@ -287,7 +268,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [place](https://wiki.openstreetmap.org/wiki/Key:place), [landuse](https://wiki.openstreetmap.org/wiki/Key:landuse)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [geodata, populated places-settlements]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -310,16 +291,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: financial_services
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Financial Services
       notes: |
@@ -329,7 +307,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [economics, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -362,16 +340,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: airports
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Airports
       notes: |
@@ -381,7 +356,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [aeroway](https://wiki.openstreetmap.org/wiki/Key:aeroway), [building](https://wiki.openstreetmap.org/wiki/Key:building), [emergency](https://wiki.openstreetmap.org/wiki/Key:emergency)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [aviation, facilities-infrastructure, geodata]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -410,26 +385,23 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: sea_ports
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Sea Ports
       notes: |
-        Sea ports and ferry terminals tagged via `amenity`, `building`, or `port`. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
+        Sea ports, harbours and ferry terminals. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
 
         Coverage reflects where volunteer mappers have been active. Urban areas are usually well represented, remote areas may be sparse. Cross-check critical decisions with local field knowledge.
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
-        - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [building](https://wiki.openstreetmap.org/wiki/Key:building), [port](https://wiki.openstreetmap.org/wiki/Key:port)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Tags: [industrial=port](https://wiki.openstreetmap.org/wiki/Tag:industrial%3Dport), [harbour](https://wiki.openstreetmap.org/wiki/Key:harbour), [port](https://wiki.openstreetmap.org/wiki/Key:port), [amenity=ferry_terminal](https://wiki.openstreetmap.org/wiki/Tag:amenity%3Dferry_terminal), [building=ferry_terminal](https://wiki.openstreetmap.org/wiki/Key:building)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, ports]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -441,6 +413,9 @@ categories:
         amenity: [ferry_terminal]
         building: [ferry_terminal]
         port: true
+        industrial: [port]
+        harbour: true
+        landuse: [harbour]
       select:
         - feature_id AS id
         - tags['name'] AS name
@@ -448,6 +423,9 @@ categories:
         - tags['amenity'] AS amenity
         - tags['building'] AS building
         - tags['port'] AS port
+        - tags['industrial'] AS industrial
+        - tags['harbour'] AS harbour
+        - tags['landuse'] AS landuse
         - tags['operator:type'] AS operator_type
         - tags['addr:full'] AS addr_full
         - tags['addr:city'] AS addr_city
@@ -455,16 +433,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: points_of_interest
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Points of Interest
       notes: |
@@ -474,7 +449,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [shop](https://wiki.openstreetmap.org/wiki/Key:shop), [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [man_made](https://wiki.openstreetmap.org/wiki/Key:man_made)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, points of interest-poi]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -506,16 +481,13 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
         prefer: name_en
 
   - name: cultural_places
-    formats: [gpkg, shp, geojson, kml]
+    formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
       title: Cultural Places
       notes: |
@@ -525,7 +497,7 @@ categories:
 
         - Source: [OpenStreetMap](https://www.openstreetmap.org), a free, collaborative world map
         - Tags: [tourism](https://wiki.openstreetmap.org/wiki/Key:tourism), [amenity](https://wiki.openstreetmap.org/wiki/Key:amenity), [historic](https://wiki.openstreetmap.org/wiki/Key:historic), [heritage](https://wiki.openstreetmap.org/wiki/Key:heritage)
-        - Part of the [exports grid on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
+        - Part of the [country exports on HDX](https://data.humdata.org/organization/hot/) by [HOT](https://www.hotosm.org/)
       tags: [facilities-infrastructure, geodata, points of interest-poi]
       license: hdx-odc-odbl
       license_url: https://opendatacommons.org/licenses/odbl/1-0/
@@ -570,9 +542,6 @@ categories:
       where: []
     overture:
       enabled: false
-    temporal:
-      column: update_time
-
     transliterate:
       - target: name_latin
         source: name
