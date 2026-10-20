@@ -288,7 +288,6 @@ events:
   # Per-file overrides, keyed by filename. A frequency here only picks which sweep runs
   # the job; what HDX advertises comes from the config's own `frequency:`.
   overrides:
-    NPL-FL-2026-flood-extent.yaml: {frequency: monthly}
     # VEN-EQ-2026-000093.yaml: {frequency: daily, expires: 2026-09-30}
     # VEN-EQ-2026-000093-osm.yaml: {enabled: false}
 

@@ -38,13 +38,23 @@ assets, one per file format.
 
 ## Load a layer
 
-Drag the **geoparquet** asset onto the map.
+Drag the **geoparquet** asset onto the map. A layer holds points, lines and polygons
+together, so QGIS first reads the file to split it by geometry type and asks which to add.
+That takes seconds for most layers.
 
 ![Buildings of Nepal loaded from GeoParquet over an OpenStreetMap basemap](../assets/qgis/geoparquet-on-map.jpg)
 
-!!! tip "Work zoomed in on large countries"
-    A country's buildings can be millions of features. QGIS draws every feature in view, so
-    zoom to the area you need and keep the view there.
+!!! tip "Large layers: add one geometry type"
+    For a country's buildings or roads, reading the whole file can take many minutes. Add
+    the layer by its URL as in [Add a file by its URL](#add-a-file-by-its-url), with the
+    geometry type you need on the end, and QGIS loads it straight away:
+
+    ```text
+    https://production-raw-data-api.s3.amazonaws.com/ISO3/NPL/_layers/osm/buildings.parquet|geometrytype=Polygon
+    ```
+
+    Use `Point`, `LineString` or `Polygon`. Zoom to the area you need, since QGIS draws
+    every feature in view.
 
 The other assets cannot be dragged onto the map. Right-click the
 item and choose **Download Assets…** to save them, or **Details…** to see every asset and

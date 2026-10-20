@@ -376,14 +376,14 @@ categories:
         - id
         - names.primary AS name
         - names.common->>'en' AS name_en
-        - categories.primary AS category
+        - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
         - confidence
         - sources[1].dataset AS source
       where:
-        - "categories.primary IN ('education', 'school', 'preschool', 'elementary_school', 'middle_school', 'high_school', 'public_school', 'private_school', 'college_university', 'educational_services')"
+        - "list_has_any(taxonomy.hierarchy, ['school', 'college_university']) OR taxonomy.primary IN ('education', 'educational_service')"
     temporal:
       column: update_time
 
@@ -439,14 +439,14 @@ categories:
         - id
         - names.primary AS name
         - names.common->>'en' AS name_en
-        - categories.primary AS category
+        - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
         - confidence
         - sources[1].dataset AS source
       where:
-        - "categories.primary IN ('hospital', 'health_and_medical', 'medical_center', 'urgent_care_clinic', 'mobile_clinic', 'storefront_clinic', 'pharmacy', 'drugstore', 'doctor', 'dentist', 'emergency_medicine', 'blood_and_plasma_donation_center')"
+        - "list_has_any(taxonomy.hierarchy, ['hospital', 'outpatient_care_facility', 'emergency_or_urgent_care_facility', 'pharmacy_and_drug_store', 'blood_and_plasma_donation_center']) OR taxonomy.primary = 'health_care'"
     temporal:
       column: update_time
 
@@ -700,7 +700,7 @@ categories:
         - id
         - names.primary AS name
         - names.common->>'en' AS name_en
-        - categories.primary AS category
+        - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
