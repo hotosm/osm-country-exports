@@ -55,7 +55,7 @@ uv run oex-cli osm --config configs/events/NPL-FL-2026-flood-extent.yaml --hdx-p
 ```
 
 The first run checks the output without pushing to HDX (files still upload to S3); the
-second publishes. With Overture enabled, run `oex-cli overture` with the same config too.
+second publishes. With Overture enabled, use `oex-cli all` to run both.
 
 ## 4. Keep it updating
 
