@@ -35,7 +35,12 @@ Common reasons, each with a file in the repository to copy from:
       geom: '{"type":"MultiPolygon","coordinates":[...]}'
     ```
 
-    `boundary.buffer_meters` widens the boundary, for example to include a coastline.
+    `base.yaml` widens every boundary by 10 km (`boundary.buffer_meters`), so coastal
+    cities and islands the ADM0 outline misses are included, then simplifies the outline
+    with a 1 km tolerance (`boundary.simplify_meters`). Each export reaches 10 km into its
+    neighbours. A country can set its own buffer, as `GRL.yaml` does. A country that turns
+    the buffer off sets `simplify_meters: 0` too, as `ATA.yaml` does. A country that lowers
+    the buffer to 1 km or less also sets a smaller `simplify_meters`, as `AND.yaml` does.
 
 === "Data source"
 

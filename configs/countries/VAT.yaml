@@ -1,2 +1,7 @@
+# The 10 km default buffer would reach well into neighbouring territory.
+boundary:
+  buffer_meters: 1000
+  simplify_meters: 100
+
 # HDX's own name for the location; pycountry's form reads poorly in titles.
 dataset_name: Holy See

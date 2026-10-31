@@ -6,7 +6,8 @@ frequency: monthly
 
 boundary:
   geoboundaries_level: ADM0
-  buffer_meters: 0
+  buffer_meters: 10000
+  simplify_meters: 1000
 
 output:
   dir: ${oc.env:OEX_DATA_DIR,.}/output

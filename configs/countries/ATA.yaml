@@ -1,0 +1,5 @@
+# Everything south of 60 degrees south, the Antarctic Treaty area (Article VI).
+boundary:
+  geom: '{"type":"Polygon","coordinates":[[[-180,-90],[180,-90],[180,-60],[-180,-60],[-180,-90]]]}'
+  buffer_meters: 0
+  simplify_meters: 0
