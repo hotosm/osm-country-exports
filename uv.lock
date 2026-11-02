@@ -196,6 +196,19 @@ wheels = [
 ]
 
 [[package]]
+name = "antimeridian"
+version = "0.4.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "shapely" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/b9/5f7cc9cd82b00cedf4fca84e537ca72e7db33b6595f7737387a9a8ba05ce/antimeridian-0.4.9.tar.gz", hash = "sha256:7ac3799ab74613d87425b92e09a098a8eb71998bbe33d02d17302c566fd31064", size = 12633295, upload-time = "2026-09-03T21:34:25.923Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/e6/097a020525a877f286991afbd4e91758658e83427c8e6f5681f11cbe7005/antimeridian-0.4.9-py3-none-any.whl", hash = "sha256:0f6a0e875264422de4809bc04aefaec449d3957a8082b05ea648dd5d3017b7a1", size = 15699, upload-time = "2026-09-03T21:34:24.016Z" },
+]
+
+[[package]]
 name = "antlr4-python3-runtime"
 version = "4.9.3"
 source = { registry = "https://pypi.org/simple" }
@@ -878,7 +891,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "hdx-python-api", specifier = ">=6.6.7" },
-    { name = "oex", specifier = ">=0.4.18" },
+    { name = "oex", specifier = ">=0.4.19" },
     { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "quackosm", git = "https://github.com/kshitijrajsharma/quackosm?rev=68f808195b47c0d928a4fdd0fda6715f390a6d6f" },
@@ -1402,9 +1415,10 @@ wheels = [
 
 [[package]]
 name = "oex"
-version = "0.4.18"
+version = "0.4.19"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "antimeridian" },
     { name = "babel" },
     { name = "boto3" },
     { name = "duckdb" },
@@ -1423,9 +1437,9 @@ dependencies = [
     { name = "unidecode" },
     { name = "universal-pathlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/55/fe/ca14e2eaf904bb89628251527314ba6804e2117ab9519679f0feb550b150/oex-0.4.18.tar.gz", hash = "sha256:a29319582b6ac261ef7cea238430bacff7a7e2b05eff6deffe5ec21830b9981b", size = 218430, upload-time = "2026-10-20T14:09:41.405Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/4c/afb1a3a2be2908d652b64ac2bf63e92a1ee8474cde4471655021a093baad/oex-0.4.19.tar.gz", hash = "sha256:850c02f6ed685f665d10fe0f303430892dcfa835701aab3acf683f980a02c970", size = 220559, upload-time = "2026-11-02T06:37:31.101Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/aa/deec089f9bcb5b59c97462e5c44efa53808b89c04a50f98755f72a37b9b2/oex-0.4.18-py3-none-any.whl", hash = "sha256:7debdd6e5d02a6b5c3779497ce370b876528b9ca912bbba77b250f80e9e3e96a", size = 144453, upload-time = "2026-10-20T14:09:40.177Z" },
+    { url = "https://files.pythonhosted.org/packages/01/82/1979f22664dacab8feb6f51029ec063ebc60c18b95f0c2143d8bf31e7b85/oex-0.4.19-py3-none-any.whl", hash = "sha256:0703166952493f232863f5c281945a06a6a84d790588294476f5898bb14022a7", size = 145282, upload-time = "2026-11-02T06:37:29.734Z" },
 ]
 
 [[package]]
@@ -3411,7 +3425,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/20/b3/0e3f822ab105f503504a0149a9cce6da59fa9626e9c68243c66b02e51efb/zensical-0.0.71-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:57cad23c56a98d87a5eefa7948a98b6ecb479dc99fd7af312cd146555f55f060", size = 18136451, upload-time = "2026-10-16T14:19:12.764Z" },
     { url = "https://files.pythonhosted.org/packages/5a/75/71dbdc5106a4153b8daed4b0161965dce9e3333b9e27bd9cf4470dac07bf/zensical-0.0.71-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:81c069cc667946e0a505cc01b99d5ba44883c57f51b95bd5a38003007c5cb6cd", size = 17670227, upload-time = "2026-10-16T14:19:15.679Z" },
     { url = "https://files.pythonhosted.org/packages/84/bd/86f0d0ae73ce27d72bb49575c2a91da9d686916cf06980b03b2b480ab688/zensical-0.0.71-cp311-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bcae388415698cac874e662e667fc0683833cec747607c89037b7e9ad9828830", size = 18167627, upload-time = "2026-10-16T14:19:18.043Z" },
-    { url = "https://files.pythonhosted.org/packages/5d/31/ce1812644068b0080fa3be630a6d10411867af5557b0c7dda7d5d3ae7cc7/zensical-0.0.71-cp311-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:0b34f58a7f565d956651baf90389aafca5c37a407a72768f30293e415589b932", size = 18108972, upload-time = "2026-10-16T14:19:20.88Z" },
     { url = "https://files.pythonhosted.org/packages/d2/f4/4f341c2dfd6fc7cf79c87287b835916570a4333e9dfef19374ba0ed8d842/zensical-0.0.71-cp311-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fc8ed534717b61f285dc217f165f901f8b8a6142ef37cdd5544976cd99b5720c", size = 18651322, upload-time = "2026-10-16T14:19:23.773Z" },
     { url = "https://files.pythonhosted.org/packages/2e/12/4e3c0430d5646509967e82340df51d9d83c5a5fc232302fd094d938171d5/zensical-0.0.71-cp311-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:1e9e39aefdca4b3383b43014e117b27a1ca9f9ac4b25eefa9195099e5a566e2f", size = 18341323, upload-time = "2026-10-16T14:19:26.505Z" },
     { url = "https://files.pythonhosted.org/packages/61/14/797afbdbeaadd671c44cd3d9740d1f67ecda70a931133c155542a4d6b5cf/zensical-0.0.71-cp311-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:d22b8924e5145d94bf85b81bd2a8afaeb32e78c8a1ddeb7f4201fc8902547221", size = 18908964, upload-time = "2026-10-16T14:19:29.382Z" },

@@ -5,8 +5,7 @@ description = "HOT OSM country-scale HDX exports."
 requires-python = ">=3.11"
 dependencies = [
     "hdx-python-api>=6.6.7",
-    # 0.4.18 lets `oex-cli all` publish more than one source in a run.
-    "oex>=0.4.18",
+    "oex>=0.4.19",
     "omegaconf>=2.3.0",
     "pyyaml>=6.0.2",
     "quackosm",
@@ -14,14 +13,8 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "pytest>=9.1.1",
-    "ruff>=0.13",
-    "ty>=0.0.78",
-]
-docs = [
-    "zensical>=0.0.71",
-]
+dev = ["pytest>=9.1.1", "ruff>=0.13", "ty>=0.0.78"]
+docs = ["zensical>=0.0.71"]
 
 [tool.ruff]
 line-length = 100
@@ -43,4 +36,3 @@ package = false
 
 [tool.uv.sources]
 quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "68f808195b47c0d928a4fdd0fda6715f390a6d6f" }
-
