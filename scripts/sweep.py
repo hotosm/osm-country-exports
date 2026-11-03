@@ -18,6 +18,8 @@ Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds t
 import argparse
 import fcntl
 import json
+import os
+import signal
 import subprocess
 import sys
 import threading
@@ -39,7 +41,10 @@ COUNTRY_CONFIG_DIR = REPO_ROOT / "configs" / "countries"
 WORK_DIR = REPO_ROOT / ".sweep"
 MANUAL_FREQUENCY = "as needed"
 COMMAND_SOURCES = ("osm", "overture")
-DEFAULT_TIMEOUT_SECONDS = 6 * 60 * 60
+DEFAULT_TIMEOUT_SECONDS = 12 * 60 * 60
+STOP_GRACE_SECONDS = 60
+# Jobs run in their own sessions, so a Ctrl+C at the terminal reaches only the sweep.
+RUNNING_GROUPS: set[int] = set()
 
 
 class ScheduleError(Exception):
@@ -265,6 +270,26 @@ class Progress:
             return f"[{self._done}/{self._total}]"
 
 
+def signal_group(group_id: int, signal_number: int) -> None:
+    try:
+        os.killpg(group_id, signal_number)
+    except ProcessLookupError:
+        pass  # every process in the group has already exited
+
+
+def stop_process_group(process: subprocess.Popen) -> None:
+    """`uv run` starts oex-cli as a child of its own, so the whole group is signalled,
+    and whatever is left after the grace period is killed."""
+    os.killpg(process.pid, signal.SIGTERM)
+    try:
+        process.wait(timeout=STOP_GRACE_SECONDS)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid, signal.SIGKILL)
+        process.wait()
+        return
+    signal_group(process.pid, signal.SIGKILL)
+
+
 def run_job(
     job: Runnable, timeout: int, capture_dir: Path | None, progress: Progress
 ) -> str | None:
@@ -278,12 +303,19 @@ def run_job(
             log_path = capture_dir / f"{job.id.replace('/', '_')}.log"
             log_file = log_path.open("w", encoding="utf-8")
             log_hint = f", see {log_path}"
-        completed = subprocess.run(
-            job.argv(), cwd=REPO_ROOT, timeout=timeout, stdout=log_file, stderr=log_file
+        process = subprocess.Popen(
+            job.argv(), cwd=REPO_ROOT, stdout=log_file, stderr=log_file, start_new_session=True
         )
-    except subprocess.TimeoutExpired:
-        print(f"{progress.tick()} {job.id} TIMEOUT after {timeout}s{log_hint}", file=sys.stderr)
-        return job.id
+        RUNNING_GROUPS.add(process.pid)
+        try:
+            returncode = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            stop_process_group(process)
+            returncode = None
+        RUNNING_GROUPS.discard(process.pid)
+        if returncode is None:
+            print(f"{progress.tick()} {job.id} TIMEOUT after {timeout}s{log_hint}", file=sys.stderr)
+            return job.id
     except OSError as error:
         # One unrunnable job must not discard the results of the jobs beside it.
         print(f"{progress.tick()} {job.id} FAILED {error}{log_hint}", file=sys.stderr)
@@ -291,9 +323,9 @@ def run_job(
     finally:
         if log_file is not None:
             log_file.close()
-    if completed.returncode != 0:
+    if returncode != 0:
         print(
-            f"{progress.tick()} {job.id} FAILED rc={completed.returncode}{log_hint}",
+            f"{progress.tick()} {job.id} FAILED rc={returncode}{log_hint}",
             file=sys.stderr,
         )
         return job.id
@@ -303,12 +335,16 @@ def run_job(
 
 def run_jobs(jobs: Sequence[Runnable], timeout: int, workers: int = 1) -> list[str]:
     progress = Progress(len(jobs))
-    if workers == 1:
-        return [r for job in jobs if (r := run_job(job, timeout, None, progress)) is not None]
-
-    capture_dir = WORK_DIR / "logs"
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs)
+    capture_dir = None if workers == 1 else WORK_DIR / "logs"
+    pool = ThreadPoolExecutor(max_workers=workers)
+    try:
+        results = list(pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs))
+    except KeyboardInterrupt:
+        pool.shutdown(wait=False, cancel_futures=True)
+        for group_id in list(RUNNING_GROUPS):
+            signal_group(group_id, signal.SIGTERM)
+        raise
+    pool.shutdown()
     return [r for r in results if r is not None]
 
 

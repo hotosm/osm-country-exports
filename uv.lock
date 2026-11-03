@@ -891,7 +891,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "hdx-python-api", specifier = ">=6.6.7" },
-    { name = "oex", specifier = ">=0.4.19" },
+    { name = "oex", specifier = ">=0.4.20" },
     { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "quackosm", git = "https://github.com/kshitijrajsharma/quackosm?rev=68f808195b47c0d928a4fdd0fda6715f390a6d6f" },
@@ -1415,7 +1415,7 @@ wheels = [
 
 [[package]]
 name = "oex"
-version = "0.4.19"
+version = "0.4.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "antimeridian" },
@@ -1437,9 +1437,9 @@ dependencies = [
     { name = "unidecode" },
     { name = "universal-pathlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/4c/afb1a3a2be2908d652b64ac2bf63e92a1ee8474cde4471655021a093baad/oex-0.4.19.tar.gz", hash = "sha256:850c02f6ed685f665d10fe0f303430892dcfa835701aab3acf683f980a02c970", size = 220559, upload-time = "2026-11-02T06:37:31.101Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/08/0bc6a4e0ddfbaa7ad0457b7fa88917f242bb5d73733919b70cc586f8685c/oex-0.4.20.tar.gz", hash = "sha256:73036cef56d3fb5f788f250ed13bac75482b812df464f8e37e24d7faa5632f38", size = 221630, upload-time = "2026-11-03T20:34:46.578Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/82/1979f22664dacab8feb6f51029ec063ebc60c18b95f0c2143d8bf31e7b85/oex-0.4.19-py3-none-any.whl", hash = "sha256:0703166952493f232863f5c281945a06a6a84d790588294476f5898bb14022a7", size = 145282, upload-time = "2026-11-02T06:37:29.734Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/79/49b0c69133fdab1fb68ddb9237fb881198197ce171844d7f1a052c12df59/oex-0.4.20-py3-none-any.whl", hash = "sha256:c8f769df862566d17ed6523f6a9d3db88b45d337c76fc2ea1a1f750e6d3accbc", size = 145724, upload-time = "2026-11-03T20:34:45.083Z" },
 ]
 
 [[package]]

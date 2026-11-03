@@ -1,3 +1,5 @@
+import os
+import signal
 import sys
 import threading
 import time
@@ -288,6 +290,66 @@ def test_a_failing_job_is_reported_and_the_sweep_continues(capsys):
 def test_a_job_that_overruns_its_timeout_is_a_failure(capsys):
     assert sweep.run_jobs([StubJob("slow", ["sleep", "5"])], timeout=1) == ["slow"]
     assert "TIMEOUT" in capsys.readouterr().err
+
+
+def _gone_within(pid_file: Path, seconds: float) -> bool:
+    """A killed process lingers until its new parent reaps it."""
+    pid = int(pid_file.read_text())
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return True
+        time.sleep(0.05)
+    return False
+
+
+def test_a_timeout_stops_the_process_the_job_started_too(tmp_path):
+    """`uv run` starts oex-cli as a child of its own, which must not outlive the job."""
+    pid_file = tmp_path / "inner.pid"
+    job = StubJob("slow", ["sh", "-c", f"sleep 300 & echo $! > {pid_file}; wait"])
+    assert sweep.run_jobs([job], timeout=1) == ["slow"]
+    assert _gone_within(pid_file, seconds=2)
+
+
+def test_an_inner_process_ignoring_sigterm_is_killed_after_the_grace_period(tmp_path, monkeypatch):
+    monkeypatch.setattr(sweep, "STOP_GRACE_SECONDS", 1)
+    pid_file = tmp_path / "inner.pid"
+    job = StubJob("stubborn", ["sh", "-c", f"trap '' TERM; sleep 300 & echo $! > {pid_file}; wait"])
+    assert sweep.run_jobs([job], timeout=1) == ["stubborn"]
+    assert _gone_within(pid_file, seconds=2)
+
+
+def test_a_timed_out_job_gets_sigterm_and_time_to_shut_down(tmp_path):
+    marker = tmp_path / "stopped"
+    job = StubJob("slow", ["sh", "-c", f"trap 'touch {marker}; exit 0' TERM; sleep 300 & wait"])
+    assert sweep.run_jobs([job], timeout=1) == ["slow"]
+    assert marker.exists()
+
+
+@pytest.mark.parametrize("workers", [1, 2])
+def test_ctrl_c_stops_running_jobs_and_starts_no_more(tmp_path, monkeypatch, workers):
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    pid_file = tmp_path / "inner.pid"
+    started_late = tmp_path / "late"
+    jobs = [
+        StubJob("long", ["sh", "-c", f"sleep 300 & echo $! > {pid_file}; wait"]),
+        *[StubJob(f"slow{n}", ["sleep", "3"]) for n in range(workers - 1)],
+        StubJob("late", ["touch", str(started_late)]),
+    ]
+
+    def interrupt_once_running():
+        while not pid_file.exists():
+            time.sleep(0.05)
+        os.kill(os.getpid(), signal.SIGINT)
+
+    threading.Thread(target=interrupt_once_running, daemon=True).start()
+    with pytest.raises(KeyboardInterrupt):
+        sweep.run_jobs(jobs, timeout=60, workers=workers)
+    assert _gone_within(pid_file, seconds=2)
+    time.sleep(4)
+    assert not started_late.exists()
 
 
 def test_a_second_sweep_cannot_take_the_lock(tmp_path, monkeypatch):
