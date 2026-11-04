@@ -18,8 +18,6 @@ Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds t
 import argparse
 import fcntl
 import json
-import os
-import signal
 import subprocess
 import sys
 import threading
@@ -30,6 +28,7 @@ from datetime import date
 from pathlib import Path
 from typing import Protocol
 
+import psutil
 import yaml
 from oex.system import adaptive_parallel_resources
 from omegaconf import OmegaConf
@@ -43,8 +42,6 @@ MANUAL_FREQUENCY = "as needed"
 COMMAND_SOURCES = ("osm", "overture")
 DEFAULT_TIMEOUT_SECONDS = 12 * 60 * 60
 STOP_GRACE_SECONDS = 60
-# Jobs run in their own sessions, so a Ctrl+C at the terminal reaches only the sweep.
-RUNNING_GROUPS: set[int] = set()
 
 
 class ScheduleError(Exception):
@@ -270,24 +267,23 @@ class Progress:
             return f"[{self._done}/{self._total}]"
 
 
-def signal_group(group_id: int, signal_number: int) -> None:
-    try:
-        os.killpg(group_id, signal_number)
-    except ProcessLookupError:
-        pass  # every process in the group has already exited
-
-
-def stop_process_group(process: subprocess.Popen) -> None:
-    """`uv run` starts oex-cli as a child of its own, so the whole group is signalled,
-    and whatever is left after the grace period is killed."""
-    os.killpg(process.pid, signal.SIGTERM)
-    try:
-        process.wait(timeout=STOP_GRACE_SECONDS)
-    except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGKILL)
-        process.wait()
-        return
-    signal_group(process.pid, signal.SIGKILL)
+def stop_process_tree(process: subprocess.Popen) -> None:
+    """`uv run` starts oex-cli as a child of its own, so every descendant gets SIGTERM, and
+    whatever outlives the grace period gets SIGKILL."""
+    root = psutil.Process(process.pid)
+    tree = [root, *root.children(recursive=True)]
+    for member in tree:
+        try:
+            member.terminate()
+        except psutil.NoSuchProcess:
+            continue  # it exited on its own
+    _, alive = psutil.wait_procs(tree, timeout=STOP_GRACE_SECONDS)
+    for member in alive:
+        try:
+            member.kill()
+        except psutil.NoSuchProcess:
+            continue  # it exited after the grace period ended
+    process.wait()
 
 
 def run_job(
@@ -303,16 +299,12 @@ def run_job(
             log_path = capture_dir / f"{job.id.replace('/', '_')}.log"
             log_file = log_path.open("w", encoding="utf-8")
             log_hint = f", see {log_path}"
-        process = subprocess.Popen(
-            job.argv(), cwd=REPO_ROOT, stdout=log_file, stderr=log_file, start_new_session=True
-        )
-        RUNNING_GROUPS.add(process.pid)
+        process = subprocess.Popen(job.argv(), cwd=REPO_ROOT, stdout=log_file, stderr=log_file)
         try:
             returncode = process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
-            stop_process_group(process)
+            stop_process_tree(process)
             returncode = None
-        RUNNING_GROUPS.discard(process.pid)
         if returncode is None:
             print(f"{progress.tick()} {job.id} TIMEOUT after {timeout}s{log_hint}", file=sys.stderr)
             return job.id
@@ -335,16 +327,17 @@ def run_job(
 
 def run_jobs(jobs: Sequence[Runnable], timeout: int, workers: int = 1) -> list[str]:
     progress = Progress(len(jobs))
-    capture_dir = None if workers == 1 else WORK_DIR / "logs"
-    pool = ThreadPoolExecutor(max_workers=workers)
-    try:
-        results = list(pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs))
-    except KeyboardInterrupt:
-        pool.shutdown(wait=False, cancel_futures=True)
-        for group_id in list(RUNNING_GROUPS):
-            signal_group(group_id, signal.SIGTERM)
-        raise
-    pool.shutdown()
+    if workers == 1:
+        return [r for job in jobs if (r := run_job(job, timeout, None, progress)) is not None]
+
+    capture_dir = WORK_DIR / "logs"
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        try:
+            results = list(pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs))
+        except KeyboardInterrupt:
+            # Ctrl+C already reached the running jobs; the queued ones must not start.
+            pool.shutdown(wait=False, cancel_futures=True)
+            raise
     return [r for r in results if r is not None]
 
 

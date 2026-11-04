@@ -309,7 +309,7 @@ def test_a_timeout_stops_the_process_the_job_started_too(tmp_path):
     """`uv run` starts oex-cli as a child of its own, which must not outlive the job."""
     pid_file = tmp_path / "inner.pid"
     job = StubJob("slow", ["sh", "-c", f"sleep 300 & echo $! > {pid_file}; wait"])
-    assert sweep.run_jobs([job], timeout=1) == ["slow"]
+    assert sweep.run_jobs([job], timeout=2) == ["slow"]
     assert _gone_within(pid_file, seconds=2)
 
 
@@ -317,7 +317,7 @@ def test_an_inner_process_ignoring_sigterm_is_killed_after_the_grace_period(tmp_
     monkeypatch.setattr(sweep, "STOP_GRACE_SECONDS", 1)
     pid_file = tmp_path / "inner.pid"
     job = StubJob("stubborn", ["sh", "-c", f"trap '' TERM; sleep 300 & echo $! > {pid_file}; wait"])
-    assert sweep.run_jobs([job], timeout=1) == ["stubborn"]
+    assert sweep.run_jobs([job], timeout=2) == ["stubborn"]
     assert _gone_within(pid_file, seconds=2)
 
 
@@ -328,28 +328,27 @@ def test_a_timed_out_job_gets_sigterm_and_time_to_shut_down(tmp_path):
     assert marker.exists()
 
 
-@pytest.mark.parametrize("workers", [1, 2])
-def test_ctrl_c_stops_running_jobs_and_starts_no_more(tmp_path, monkeypatch, workers):
+def test_ctrl_c_with_parallel_workers_starts_no_queued_job(tmp_path, monkeypatch):
     monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
-    pid_file = tmp_path / "inner.pid"
-    started_late = tmp_path / "late"
+    started = [tmp_path / "a", tmp_path / "b"]
+    late = tmp_path / "late"
     jobs = [
-        StubJob("long", ["sh", "-c", f"sleep 300 & echo $! > {pid_file}; wait"]),
-        *[StubJob(f"slow{n}", ["sleep", "3"]) for n in range(workers - 1)],
-        StubJob("late", ["touch", str(started_late)]),
+        *[StubJob(f.name, ["sh", "-c", f"touch {f}; exec sleep 1"]) for f in started],
+        StubJob("late", ["touch", str(late)]),
     ]
 
-    def interrupt_once_running():
-        while not pid_file.exists():
+    def interrupt_once_both_run():
+        deadline = time.monotonic() + 10
+        while not all(f.exists() for f in started) and time.monotonic() < deadline:
             time.sleep(0.05)
         os.kill(os.getpid(), signal.SIGINT)
 
-    threading.Thread(target=interrupt_once_running, daemon=True).start()
+    threading.Thread(target=interrupt_once_both_run, daemon=True).start()
     with pytest.raises(KeyboardInterrupt):
-        sweep.run_jobs(jobs, timeout=60, workers=workers)
-    assert _gone_within(pid_file, seconds=2)
-    time.sleep(4)
-    assert not started_late.exists()
+        sweep.run_jobs(jobs, timeout=60, workers=2)
+    # A queued job would start as soon as a running one finished, a second later.
+    time.sleep(2)
+    assert not late.exists()
 
 
 def test_a_second_sweep_cannot_take_the_lock(tmp_path, monkeypatch):

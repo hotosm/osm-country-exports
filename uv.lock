@@ -873,6 +873,7 @@ dependencies = [
     { name = "hdx-python-api" },
     { name = "oex" },
     { name = "omegaconf" },
+    { name = "psutil" },
     { name = "pyyaml" },
     { name = "quackosm" },
     { name = "universal-pathlib" },
@@ -891,8 +892,9 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "hdx-python-api", specifier = ">=6.6.7" },
-    { name = "oex", specifier = ">=0.4.20" },
+    { name = "oex", specifier = ">=0.4.21" },
     { name = "omegaconf", specifier = ">=2.3.0" },
+    { name = "psutil", specifier = ">=7.2.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "quackosm", git = "https://github.com/kshitijrajsharma/quackosm?rev=68f808195b47c0d928a4fdd0fda6715f390a6d6f" },
     { name = "universal-pathlib", specifier = ">=0.3.10" },
@@ -1415,7 +1417,7 @@ wheels = [
 
 [[package]]
 name = "oex"
-version = "0.4.20"
+version = "0.4.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "antimeridian" },
@@ -1437,9 +1439,9 @@ dependencies = [
     { name = "unidecode" },
     { name = "universal-pathlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/08/0bc6a4e0ddfbaa7ad0457b7fa88917f242bb5d73733919b70cc586f8685c/oex-0.4.20.tar.gz", hash = "sha256:73036cef56d3fb5f788f250ed13bac75482b812df464f8e37e24d7faa5632f38", size = 221630, upload-time = "2026-11-03T20:34:46.578Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/a2/3d5e875fc4e4d0bc9ab9551577128ef4474666f50ff096a4b729a6f851b1/oex-0.4.21.tar.gz", hash = "sha256:17f10135a178c5a4532149e56b85e3f67d4e320ac52a2c078937165eaa642d3a", size = 221783, upload-time = "2026-11-04T09:20:00.664Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bf/79/49b0c69133fdab1fb68ddb9237fb881198197ce171844d7f1a052c12df59/oex-0.4.20-py3-none-any.whl", hash = "sha256:c8f769df862566d17ed6523f6a9d3db88b45d337c76fc2ea1a1f750e6d3accbc", size = 145724, upload-time = "2026-11-03T20:34:45.083Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/19/9e90e24e032230c68b7af2bc25a251eaeec379119f7c43d862cc7edd1abe/oex-0.4.21-py3-none-any.whl", hash = "sha256:ae9b27cafe71005a5c1066c4015690f0e49ac568a4beb15f90021c324accb15a", size = 145838, upload-time = "2026-11-04T09:19:59.285Z" },
 ]
 
 [[package]]
