@@ -896,7 +896,7 @@ requires-dist = [
     { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "psutil", specifier = ">=7.2.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "quackosm", git = "https://github.com/kshitijrajsharma/quackosm?rev=68f808195b47c0d928a4fdd0fda6715f390a6d6f" },
+    { name = "quackosm", git = "https://github.com/kshitijrajsharma/quackosm?rev=412b6e4d6439403099c11b9f2ddf4d781029b069" },
     { name = "universal-pathlib", specifier = ">=0.3.10" },
 ]
 
@@ -2485,7 +2485,7 @@ wheels = [
 [[package]]
 name = "quackosm"
 version = "0.17.1"
-source = { git = "https://github.com/kshitijrajsharma/quackosm?rev=68f808195b47c0d928a4fdd0fda6715f390a6d6f#68f808195b47c0d928a4fdd0fda6715f390a6d6f" }
+source = { git = "https://github.com/kshitijrajsharma/quackosm?rev=412b6e4d6439403099c11b9f2ddf4d781029b069#412b6e4d6439403099c11b9f2ddf4d781029b069" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "duckdb" },
