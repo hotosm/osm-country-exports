@@ -1,48 +1,66 @@
-# The schedule
+# Schedule groups and frequencies
 
 [`scripts/schedule.yaml`](https://github.com/hotosm/osm-country-exports/blob/main/scripts/schedule.yaml)
 says what is exported and how often. It is split into groups, run in the order the
-`groups:` list declares.
+`groups:` list declares, and each group sets one update frequency for everything in it.
 
 | Group | Holds | Update frequency |
 | --- | --- | --- |
-| `priority` | 27 countries, run first | Monthly |
-| `normal` | 191 countries and territories | Monthly |
-| `heavy` | 32 large countries, such as the USA, Brazil, India and Russia | As needed, run by hand |
+| `priority` | The 22 HDX Data Grid locations, run first | Monthly |
+| `normal` | 109 countries and territories | Monthly |
+| `high_income` | 95 high-income countries and territories | Quarterly |
+| `big` | 12 large countries, such as the USA, Brazil, India and Russia | Yearly |
+| `minimal` | 12 uninhabited or nearly empty territories, such as Antarctica | As needed, run by hand |
 | `events` | Disaster and response exports, one config file each, in `configs/events/` | Set per config |
 | `tasking_manager` | One export per active Tasking Manager project | Daily |
 | `tasking_manager_sandbox` | The same for the Tasking Manager sandbox | Daily |
 
-## How a group lists its jobs
+## Group settings
 
 A group holds one of two job sources.
 
-- `countries:` maps ISO3 codes to a frequency. Each country's config is
-  `configs/base.yaml`, with `configs/countries/<ISO3>.yaml` merged over it when that file
-  exists.
-- `dir:` names a folder of standalone configs, one job per file. A job's frequency comes
-  from the config's own `frequency:`, or from the group's `frequency:` when the config has
-  none.
+- `countries:` lists ISO3 codes. Each country's config is `configs/base.yaml`, with
+  `configs/countries/<ISO3>.yaml` merged over it when that file exists.
+- `dir:` names a folder of standalone configs, one job per file. A config's own
+  `frequency:` wins over the group's.
 
-A value is either a frequency or a mapping that can also disable a job or give it an end
+`frequency:` is the group's update frequency. `workers:` sets how many countries export
+at once in a country group (1 when left out); each gets an equal share of the memory.
+
+```yaml
+normal:
+  frequency: monthly
+  workers: 2
+  countries: [AGO, ALB, ARM]
+```
+
+To change a whole group's frequency, edit its `frequency:`. To make one country differ,
+write the countries as a mapping. A value there can also disable a job or give it an end
 date:
 
 ```yaml
-AFG: monthly
-YEM: {frequency: monthly, enabled: false}
-SDN: {frequency: monthly, expires: 2026-12-31}
+countries:
+  PAK: weekly
+  NPL: null
+  YEM: {enabled: false}
+  SDN: {expires: 2026-12-31}
 ```
 
-Disabled and expired jobs are skipped, and the sweep prints why.
+`null` keeps the group's frequency. Disabled and expired jobs are skipped, and the sweep
+prints why.
 
 ## Frequencies
 
-A job's frequency decides which sweep runs it: `just sweep --frequency monthly` runs the
-monthly jobs, and so on for `daily` and `weekly`. Run each on its cycle, for example the
-monthly sweep at the start of each month. Jobs on `as needed` run only with
-`--frequency "as needed"`.
+The frequencies are the ones HDX uses: `daily`, `weekly`, `monthly`, `quarterly`,
+`yearly`, and `as needed`. `just sweep --due` runs every job whose last successful run is
+older than its frequency, group by group in order, and records each success in
+`.sweep/state.json`. `just daily` runs it once the Tasking Manager configs are refreshed;
+run that once a day. A job that fails stays due, so the next day's run tries it again.
+Jobs on `as needed` run only by hand, with `--frequency "as needed"`.
 
 For a country, the frequency is also the update frequency its HDX datasets show, and the
-schedule is the only place to set it. For a config in a `dir:` group, HDX shows the
-config's own `frequency:`, and a frequency in the group's `overrides:` only picks the sweep. A missed run shows as outdated on
-the [update status page](https://hotosm.github.io/hot2hdx-status/).
+schedule is the only place to set it. A change reaches HDX the next time the country is
+published; `scripts/sync_hdx_frequency.py --apply` updates HDX straight away. For a config
+in a `dir:` group, HDX shows the config's own `frequency:`, and a frequency in the group's
+`overrides:` only decides when it runs. A missed run shows as outdated on the
+[update status page](https://hotosm.github.io/hot2hdx-status/).

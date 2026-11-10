@@ -9,8 +9,11 @@
     sweep.py --group priority --no-resume           re-export even if state says done
     sweep.py --group normal --only ZWE,VNM          just those countries
     sweep.py --group normal --workers 4             four countries at once
+    sweep.py --due                                  only jobs whose last success is older
+                                                    than their frequency, every group in order
 
-With --workers above 1 each job's output goes to .sweep/logs/<job-id>.log.
+With more than one worker each job's output goes to .sweep/logs/<job-id>.log. Every
+successful job is recorded in .sweep/state.json, which --due reads.
 
 Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds the lock.
 """
@@ -18,18 +21,21 @@ Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds t
 import argparse
 import fcntl
 import json
+import os
 import subprocess
 import sys
 import threading
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
+from itertools import groupby
 from pathlib import Path
 from typing import Protocol
 
 import psutil
 import yaml
+from hdx.data.dataset import Dataset
 from oex.system import adaptive_parallel_resources
 from omegaconf import OmegaConf
 
@@ -42,6 +48,7 @@ MANUAL_FREQUENCY = "as needed"
 COMMAND_SOURCES = ("osm", "overture")
 DEFAULT_TIMEOUT_SECONDS = 12 * 60 * 60
 STOP_GRACE_SECONDS = 60
+STATE_FILE = WORK_DIR / "state.json"
 
 
 class ScheduleError(Exception):
@@ -51,6 +58,9 @@ class ScheduleError(Exception):
 class Runnable(Protocol):
     @property
     def id(self) -> str: ...
+
+    @property
+    def key(self) -> str: ...
 
     def argv(self) -> list[str]: ...
 
@@ -63,6 +73,14 @@ class Job:
     config: Path
     iso3: str | None
     extra: tuple[str, ...] = ()
+    frequency: str = MANUAL_FREQUENCY
+    workers: int = 1
+
+    @property
+    def key(self) -> str:
+        """A country drops its group so it keeps its run history when moved to another tier;
+        a config keeps it, since production and sandbox project ids overlap."""
+        return self.id.split("/", 1)[1] if self.iso3 else self.id
 
     def argv(self) -> list[str]:
         argv = ["uv", "run", "oex-cli", self.command, "--config", str(self.config)]
@@ -174,13 +192,27 @@ def group_candidates(name: str, group: dict) -> list[tuple[str, dict, str, objec
     """(label, attrs, kind, ref) for every job in a group, before filtering."""
     if "countries" in group:
         default = group.get("frequency")
+        members = group["countries"] or {}
+        if isinstance(members, list):
+            members = dict.fromkeys(members)
         return [
-            (iso3, attributes(value, default), "country", iso3)
-            for iso3, value in (group["countries"] or {}).items()
+            (iso3, attributes(value, default), "country", iso3) for iso3, value in members.items()
         ]
     if "dir" in group:
         return folder_candidates(name, group)
     raise ScheduleError(f"group {name!r} has neither `countries:` nor `dir:`")
+
+
+def group_workers(name: str, group: dict, workers_override: int | None) -> int:
+    """Concurrent exports need a memory budget each, which only country configs can take."""
+    if "dir" in group:
+        if group.get("workers", 1) != 1:
+            raise ScheduleError(f"group {name!r}: a folder of configs runs one job at a time")
+        return 1
+    workers = workers_override or group.get("workers", 1)
+    if workers < 1:
+        raise ScheduleError(f"group {name!r}: workers must be at least 1")
+    return workers
 
 
 def resolve(
@@ -189,7 +221,7 @@ def resolve(
     frequency_filter: str | None,
     today: date,
     extra: tuple[str, ...] = (),
-    memory_gb: int | None = None,
+    workers_override: int | None = None,
 ) -> tuple[list[Job], list[str]]:
     groups = schedule.get("groups")
     if not groups:
@@ -208,6 +240,8 @@ def resolve(
         if not group.get("enabled", True):
             skipped.append(f"{name}: group disabled")
             continue
+        workers = group_workers(name, group, workers_override)
+        memory_gb = memory_gb_per_worker(workers) if workers > 1 else None
 
         for label, attrs, kind, ref in group_candidates(name, group):
             if attrs["frequency"] is None:
@@ -228,7 +262,18 @@ def resolve(
             commands = commands_for(config)
             for command in commands:
                 suffix = f":{command}" if len(commands) > 1 else ""
-                jobs.append(Job(f"{name}/{label}{suffix}", name, command, config, iso3, extra))
+                jobs.append(
+                    Job(
+                        f"{name}/{label}{suffix}",
+                        name,
+                        command,
+                        config,
+                        iso3,
+                        extra,
+                        attrs["frequency"],
+                        workers,
+                    )
+                )
     return jobs, skipped
 
 
@@ -242,6 +287,41 @@ def acquire_lock():
         handle.close()
         return None
     return handle
+
+
+def load_state() -> dict[str, str]:
+    if not STATE_FILE.exists():
+        return {}
+    return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+
+
+class RunState:
+    """Last success per job key, written after every job so an interrupted sweep keeps it."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+
+    def record_success(self, job: Runnable) -> None:
+        with self._lock:
+            state = load_state()
+            state[job.key] = datetime.now(UTC).isoformat(timespec="seconds")
+            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            # Replaced in one step, so an interrupted write cannot leave half a file.
+            partial = STATE_FILE.with_suffix(".tmp")
+            partial.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+            os.replace(partial, STATE_FILE)
+
+
+def is_due(job: Job, state: dict[str, str], now: datetime) -> bool:
+    """Due once the frequency's days have passed since the last success, counted in calendar
+    days so a run that finished after the daily tick started still counts as yesterday's."""
+    days = Dataset.transform_update_frequency(str(job.frequency))
+    if days is None or not str(days).lstrip("-").isdigit():
+        raise ScheduleError(f"{job.id}: {job.frequency!r} is not an HDX frequency name")
+    if int(days) <= 0:
+        return False
+    last = state.get(job.key)
+    return last is None or (now.date() - datetime.fromisoformat(last).date()).days >= int(days)
 
 
 def select_countries(jobs: list[Job], only: str) -> list[Job]:
@@ -287,7 +367,11 @@ def stop_process_tree(process: subprocess.Popen) -> None:
 
 
 def run_job(
-    job: Runnable, timeout: int, capture_dir: Path | None, progress: Progress
+    job: Runnable,
+    timeout: int,
+    capture_dir: Path | None,
+    progress: Progress,
+    on_success: Callable[[Runnable], None] | None = None,
 ) -> str | None:
     """Returns the job id when it fails, None when it succeeds."""
     print(f"{job.id}: starting", flush=True)
@@ -321,19 +405,32 @@ def run_job(
             file=sys.stderr,
         )
         return job.id
+    if on_success is not None:
+        on_success(job)
     print(f"{progress.tick()} {job.id} done", flush=True)
     return None
 
 
-def run_jobs(jobs: Sequence[Runnable], timeout: int, workers: int = 1) -> list[str]:
+def run_jobs(
+    jobs: Sequence[Runnable],
+    timeout: int,
+    workers: int = 1,
+    on_success: Callable[[Runnable], None] | None = None,
+) -> list[str]:
     progress = Progress(len(jobs))
     if workers == 1:
-        return [r for job in jobs if (r := run_job(job, timeout, None, progress)) is not None]
+        return [
+            r
+            for job in jobs
+            if (r := run_job(job, timeout, None, progress, on_success)) is not None
+        ]
 
     capture_dir = WORK_DIR / "logs"
     with ThreadPoolExecutor(max_workers=workers) as pool:
         try:
-            results = list(pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs))
+            results = list(
+                pool.map(lambda job: run_job(job, timeout, capture_dir, progress, on_success), jobs)
+            )
         except KeyboardInterrupt:
             # Ctrl+C already reached the running jobs; the queued ones must not start.
             pool.shutdown(wait=False, cancel_futures=True)
@@ -347,7 +444,9 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--group", help="one group from `groups:` in the schedule")
-    parser.add_argument("--frequency", help="daily, weekly, monthly, or 'as needed'")
+    parser.add_argument(
+        "--frequency", help="daily, weekly, monthly, quarterly, yearly, or 'as needed'"
+    )
     parser.add_argument(
         "--timeout",
         type=int,
@@ -364,8 +463,12 @@ def main() -> int:
     parser.add_argument(
         "--workers",
         type=int,
-        default=1,
-        help="run this many exports at once, each taking the next country as it frees up",
+        help="exports at once in each country group, overriding the group's `workers:`",
+    )
+    parser.add_argument(
+        "--due",
+        action="store_true",
+        help="only jobs whose last success is older than their frequency",
     )
     parser.add_argument(
         "--only",
@@ -378,7 +481,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if args.workers < 1:
+    if args.workers is not None and args.workers < 1:
         parser.error("--workers must be at least 1")
 
     extra = ("--no-hdx-push",) if args.no_hdx_push else ()
@@ -386,20 +489,14 @@ def main() -> int:
         extra += ("--no-resume",)
     schedule = yaml.safe_load(SCHEDULE_FILE.read_text(encoding="utf-8")) or {}
     try:
-        memory_gb = memory_gb_per_worker(args.workers) if args.workers > 1 else None
         jobs, skipped = resolve(
-            schedule, args.group, args.frequency, date.today(), extra, memory_gb
+            schedule, args.group, args.frequency, date.today(), extra, args.workers
         )
+        if args.due:
+            state, now = load_state(), datetime.now(UTC)
+            jobs = [job for job in jobs if is_due(job, state, now)]
     except ScheduleError as error:
         print(f"sweep: {error}", file=sys.stderr)
-        return 2
-
-    if args.workers > 1 and any(job.iso3 is None for job in jobs):
-        print(
-            "sweep: --workers above 1 only covers country groups; the memory budget "
-            "cannot be set for a folder of standalone configs",
-            file=sys.stderr,
-        )
         return 2
 
     if args.only:
@@ -429,7 +526,11 @@ def main() -> int:
         print("sweep: another sweep holds the lock, refusing to overlap", file=sys.stderr)
         return 3
 
-    failures = run_jobs(jobs, args.timeout, args.workers)
+    run_state = RunState()
+    failures: list[str] = []
+    for _, group_jobs in groupby(jobs, key=lambda job: job.group):
+        batch = list(group_jobs)
+        failures += run_jobs(batch, args.timeout, batch[0].workers, run_state.record_success)
     if failures:
         print(f"sweep: {len(failures)}/{len(jobs)} failed: {', '.join(failures)}", file=sys.stderr)
         return 1

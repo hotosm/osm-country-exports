@@ -37,7 +37,7 @@ SELECT count(*)
 FROM 'https://production-raw-data-api.s3.amazonaws.com/ISO3/NPL/_layers/osm/buildings.parquet';
 ```
 
-The columns are described in [What the exports contain](../reference/contents.md#columns).
+The columns are described in [Layers, formats and columns](../reference/contents.md#columns).
 
 ## Cut out one area
 

@@ -18,8 +18,8 @@ nav = [
     { "Other tools" = "use/other-tools.md" },
   ] },
   { "Reference" = [
-    { "What the exports contain" = "reference/contents.md" },
-    { "The schedule" = "reference/schedule.md" },
+    { "Layers, formats and columns" = "reference/contents.md" },
+    { "Schedule groups and frequencies" = "reference/schedule.md" },
   ] },
   { "Maintain" = [
     { "Edit a country" = "maintain/edit-a-country.md" },

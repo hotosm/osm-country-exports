@@ -1,292 +1,84 @@
-# What runs, and when.
+# What runs, and when. Priority is the HDX Data Grid locations; high-income countries
+# refresh quarterly and the largest countries yearly.
 #
 # groups:  run order. Position in the list is priority.
 #
-# A group holds one job source:
-#   countries:  ISO3 -> frequency. Config is configs/countries/<ISO3>.yaml merged
+# A group sets one frequency for everything in it, and holds one job source:
+#   countries:  a list of ISO3 codes. Config is configs/countries/<ISO3>.yaml merged
 #               over configs/base.yaml, or configs/base.yaml alone.
-#   dir:        a folder of standalone configs, one job per file. Frequency comes
-#               from each config's own `frequency:` field, falling back to the
-#               group's `frequency:`.
+#   dir:        a folder of standalone configs, one job per file. Each config's own
+#               `frequency:` wins over the group's.
+#   workers:    country exports at once in this group (default 1). Each gets an equal
+#               share of the memory.
 #
-# Any value is either a bare frequency or a mapping of frequency / enabled / expires:
-#   AFG: monthly
-#   YEM: {frequency: monthly, enabled: false}
-#   SDN: {frequency: monthly, expires: 2026-12-31}
+# One country can still differ from its group: write the countries as a mapping, for
+# example {PAK: weekly, NPL: null}, or {SDN: {expires: 2026-12-31}}.
 #
-# `frequency: as needed` never runs on a schedule. Run those by hand with
+# `sweep.py --due` runs every job whose last success is older than its frequency.
+# `frequency: as needed` never runs on a schedule; run those by hand with
 # --frequency "as needed". An expired or disabled job is skipped and says so.
 
-groups: [priority, normal, heavy, events, tasking_manager, tasking_manager_sandbox]
+groups: [priority, normal, high_income, big, minimal, events, tasking_manager, tasking_manager_sandbox]
 
+# Data Grid locations (22).
 priority:
   enabled: true
-  countries:
-    AFG: monthly
-    BFA: monthly
-    BGD: monthly
-    CAF: monthly
-    CMR: monthly
-    COD: monthly
-    COL: monthly
-    ETH: monthly
-    HTI: monthly
-    KEN: monthly
-    LBN: monthly
-    MDG: monthly
-    MLI: monthly
-    MMR: monthly
-    MOZ: monthly
-    NER: monthly
-    NGA: monthly
-    PSE: monthly
-    SDN: monthly
-    SOM: monthly
-    SSD: monthly
-    SYR: monthly
-    TCD: monthly
-    UGA: monthly
-    UKR: monthly
-    VEN: monthly
-    YEM: monthly
+  frequency: monthly
+  countries: [
+    AFG, BFA, CAF, CMR, COD, COL, HTI, LBN, MLI, MMR, MOZ, NER, NGA, PSE, SDN, SOM, SSD,
+    SYR, TCD, UKR, VEN, YEM
+  ]
 
+# Every other country HDX refreshes monthly (109).
 normal:
   enabled: true
-  countries:
-    ABW: monthly
-    ATA: monthly
-    AIA: monthly
-    ALA: monthly
-    ALB: monthly
-    AND: monthly
-    ARE: monthly
-    ARM: monthly
-    ASM: monthly
-    ATF: monthly
-    ATG: monthly
-    AUT: monthly
-    AZE: monthly
-    BDI: monthly
-    BEL: monthly
-    BEN: monthly
-    BES: monthly
-    BGR: monthly
-    BHR: monthly
-    BHS: monthly
-    BIH: monthly
-    BLM: monthly
-    BLR: monthly
-    BLZ: monthly
-    BMU: monthly
-    BRB: monthly
-    BRN: monthly
-    BTN: monthly
-    BVT: monthly
-    BWA: monthly
-    CCK: monthly
-    CHE: monthly
-    CHL: monthly
-    CIV: monthly
-    COG: monthly
-    COK: monthly
-    COM: monthly
-    CPV: monthly
-    CRI: monthly
-    CUB: monthly
-    CUW: monthly
-    CXR: monthly
-    CYM: monthly
-    CYP: monthly
-    CZE: monthly
-    DJI: monthly
-    DMA: monthly
-    DNK: monthly
-    DOM: monthly
-    ECU: monthly
-    ERI: monthly
-    ESH: monthly
-    EST: monthly
-    FIN: monthly
-    FJI: monthly
-    FLK: monthly
-    FRO: monthly
-    FSM: monthly
-    GAB: monthly
-    GEO: monthly
-    GGY: monthly
-    GHA: monthly
-    GIB: monthly
-    GIN: monthly
-    GLP: monthly
-    GMB: monthly
-    GNB: monthly
-    GNQ: monthly
-    GRC: monthly
-    GRD: monthly
-    GRL: monthly
-    GTM: monthly
-    GUF: monthly
-    GUM: monthly
-    GUY: monthly
-    HKG: monthly
-    HMD: monthly
-    HND: monthly
-    HRV: monthly
-    HUN: monthly
-    IMN: monthly
-    IOT: monthly
-    IRL: monthly
-    IRQ: monthly
-    ISL: monthly
-    ISR: monthly
-    JAM: monthly
-    JEY: monthly
-    JOR: monthly
-    KGZ: monthly
-    KHM: monthly
-    KIR: monthly
-    KNA: monthly
-    KOR: monthly
-    KWT: monthly
-    LAO: monthly
-    LBR: monthly
-    LBY: monthly
-    LCA: monthly
-    LIE: monthly
-    LKA: monthly
-    LSO: monthly
-    LTU: monthly
-    LUX: monthly
-    LVA: monthly
-    MAC: monthly
-    MAF: monthly
-    MCO: monthly
-    MDA: monthly
-    MDV: monthly
-    MHL: monthly
-    MKD: monthly
-    MLT: monthly
-    MNE: monthly
-    MNG: monthly
-    MNP: monthly
-    MRT: monthly
-    MSR: monthly
-    MTQ: monthly
-    MUS: monthly
-    MWI: monthly
-    MYS: monthly
-    MYT: monthly
-    NAM: monthly
-    NCL: monthly
-    NFK: monthly
-    NIC: monthly
-    NIU: monthly
-    NLD: monthly
-    NOR: monthly
-    NPL: monthly
-    NRU: monthly
-    NZL: monthly
-    OMN: monthly
-    PAN: monthly
-    PCN: monthly
-    PLW: monthly
-    PNG: monthly
-    PRI: monthly
-    PRK: monthly
-    PRT: monthly
-    PRY: monthly
-    PYF: monthly
-    QAT: monthly
-    REU: monthly
-    ROU: monthly
-    RWA: monthly
-    SEN: monthly
-    SGP: monthly
-    SGS: monthly
-    SHN: monthly
-    SJM: monthly
-    SLB: monthly
-    SLE: monthly
-    SLV: monthly
-    SMR: monthly
-    SPM: monthly
-    SRB: monthly
-    STP: monthly
-    SUR: monthly
-    SVK: monthly
-    SVN: monthly
-    SWE: monthly
-    SWZ: monthly
-    SXM: monthly
-    SYC: monthly
-    TCA: monthly
-    TGO: monthly
-    TJK: monthly
-    TKL: monthly
-    TKM: monthly
-    TLS: monthly
-    TON: monthly
-    TTO: monthly
-    TUN: monthly
-    TUV: monthly
-    TWN: monthly
-    TZA: monthly
-    UMI: monthly
-    URY: monthly
-    UZB: monthly
-    VAT: monthly
-    VCT: monthly
-    VGB: monthly
-    VIR: monthly
-    VUT: monthly
-    WLF: monthly
-    WSM: monthly
-    XKX: monthly
-    ZMB: monthly
-    ZWE: monthly
+  frequency: monthly
+  workers: 2
+  countries: [
+    AGO, ALB, ARM, AZE, BDI, BEN, BGD, BIH, BLR, BLZ, BOL, BTN, BWA, CIV, COG, COK, COM,
+    CPV, CUB, DJI, DMA, DOM, ECU, EGY, ERI, ESH, ETH, FJI, FSM, GAB, GEO, GHA, GIN, GMB,
+    GNB, GNQ, GRD, GTM, HND, IRN, IRQ, JAM, JOR, KEN, KGZ, KHM, KIR, LAO, LBR, LBY, LCA,
+    LKA, LSO, MAR, MDA, MDG, MDV, MHL, MKD, MNE, MNG, MRT, MUS, MWI, MYS, NAM, NIC, NIU,
+    NPL, NRU, PAK, PER, PHL, PLW, PNG, PRK, PRY, RWA, SEN, SHN, SLB, SLE, SLV, SRB, STP,
+    SUR, SWZ, TGO, THA, TJK, TKL, TKM, TLS, TON, TUN, TUR, TUV, TZA, UGA, UZB, VCT, VNM,
+    VUT, WLF, WSM, XKX, ZAF, ZMB, ZWE
+  ]
 
-heavy:
+# High-income countries (95).
+high_income:
   enabled: true
-  countries:
-    AGO: as needed
-    ARG: as needed
-    AUS: as needed
-    BOL: as needed
-    BRA: as needed
-    CAN: as needed
-    CHN: as needed
-    DEU: as needed
-    DZA: as needed
-    EGY: as needed
-    ESP: as needed
-    FRA: as needed
-    GBR: as needed
-    IDN: as needed
-    IND: as needed
-    IRN: as needed
-    ITA: as needed
-    JPN: as needed
-    KAZ: as needed
-    MAR: as needed
-    MEX: as needed
-    PAK: as needed
-    PER: as needed
-    PHL: as needed
-    POL: as needed
-    RUS: as needed
-    SAU: as needed
-    THA: as needed
-    TUR: as needed
-    USA: as needed
-    VNM: as needed
-    ZAF: as needed
+  frequency: quarterly
+  countries: [
+    ABW, AIA, ALA, AND, ARE, ASM, ATG, AUT, BEL, BES, BGR, BHR, BHS, BLM, BMU, BRB, BRN,
+    CHE, CHL, CRI, CUW, CYM, CYP, CZE, DEU, DNK, ESP, EST, FIN, FLK, FRA, FRO, GBR, GGY,
+    GIB, GLP, GRC, GRL, GUF, GUM, GUY, HKG, HRV, HUN, IMN, IRL, ISL, ISR, ITA, JEY, JPN,
+    KNA, KOR, KWT, LIE, LTU, LUX, LVA, MAC, MAF, MCO, MLT, MNP, MSR, MTQ, MYT, NCL, NLD,
+    NOR, NZL, OMN, PAN, POL, PRI, PRT, PYF, QAT, REU, ROU, SAU, SGP, SMR, SPM, SVK, SVN,
+    SWE, SXM, SYC, TCA, TTO, TWN, URY, VAT, VGB, VIR
+  ]
+
+# The largest countries (12).
+big:
+  enabled: true
+  frequency: yearly
+  countries: [
+    ARG, AUS, BRA, CAN, CHN, DZA, IDN, IND, KAZ, MEX, RUS, USA
+  ]
+
+# Uninhabited or nearly empty territories (12); off the schedule.
+minimal:
+  enabled: true
+  frequency: as needed
+  countries: [
+    ATA, ATF, BVT, CCK, CXR, HMD, IOT, NFK, PCN, SGS, SJM, UMI
+  ]
 
 events:
   enabled: true
   dir: configs/events
   frequency: monthly
-  # Per-file overrides, keyed by filename. A frequency here only picks which sweep runs
-  # the job; what HDX advertises comes from the config's own `frequency:`.
+  # Per-file overrides, keyed by filename. A frequency here only decides when the job
+  # runs; what HDX advertises comes from the config's own `frequency:`.
   overrides:
     # VEN-EQ-2026-000093.yaml: {frequency: daily, expires: 2026-09-30}
     # VEN-EQ-2026-000093-osm.yaml: {enabled: false}

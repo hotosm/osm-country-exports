@@ -15,13 +15,16 @@ planet file alone was about 95 GB in October 2026.
 
 ```bash
 set -a && source .env && set +a
-just sweep --frequency monthly
-just sweep --group heavy --frequency "as needed" --only USA
+just sweep --due
+just sweep --due --dry-run
+just sweep --group big --only USA
 just sweep --group normal --workers 4
-just sweep --dry-run
 ```
 
-Run `just sweep --help` for every option. A sweep resumes by default, skipping layers
+`--due` runs whatever is due, as described in
+[Schedule groups and frequencies](../reference/schedule.md). Run `just daily` once a day,
+for example from a systemd timer: it refreshes the Tasking Manager configs, then runs
+`just sweep --due`. Run `just sweep --help` for every option. A sweep resumes by default, skipping layers
 already uploaded from the same snapshot. `--no-hdx-push` skips HDX, but files still upload
 to S3.
 

@@ -5,8 +5,8 @@ A sweep sets the frequency when it publishes, so datasets only drift when the
 schedule changes and the group has not run since. This resets them without
 re-exporting anything.
 
-    sync_hdx_frequency.py --group heavy              # report the drift, change nothing
-    sync_hdx_frequency.py --group heavy --apply      # write the new frequency
+    sync_hdx_frequency.py --group high_income              # report the drift, change nothing
+    sync_hdx_frequency.py --group high_income --apply      # write the new frequency
     sync_hdx_frequency.py                            # every country group
 
 Exit codes: 1 a dataset failed to update, 2 the schedule is malformed.
@@ -20,6 +20,8 @@ from pathlib import Path
 import yaml
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
+
+from sweep import group_candidates
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEDULE_FILE = REPO_ROOT / "scripts" / "schedule.yaml"
@@ -55,12 +57,10 @@ def scheduled_countries(schedule: dict, group_filter: str | None) -> list[tuple[
         group = schedule.get(name) or {}
         if "countries" not in group:
             continue
-        default = group.get("frequency")
-        for iso3, value in (group["countries"] or {}).items():
-            frequency = value if isinstance(value, str) else (value or {}).get("frequency", default)
-            if frequency is None:
+        for iso3, attrs, _, _ in group_candidates(name, group):
+            if attrs["frequency"] is None:
                 raise SystemExit(f"{name}/{iso3}: no frequency here or on the group")
-            pairs.append((iso3, frequency))
+            pairs.append((iso3, attrs["frequency"]))
     return pairs
 
 

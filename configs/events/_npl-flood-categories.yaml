@@ -32,7 +32,7 @@ categories:
         - feature_id AS id
         - tags['name'] AS name
         - tags['name:en'] AS name_en
-        - &status "CASE WHEN len(list_filter(map_keys(tags), k -> starts_with(k, 'destroyed:'))) > 0 THEN 'Destroyed' WHEN len(list_filter(map_keys(tags), k -> starts_with(k, 'damaged:'))) > 0 OR tags['damage:building'] IS NOT NULL THEN 'Damaged' ELSE 'Standing' END AS status"
+        - &status "CASE WHEN len(list_filter(map_keys(tags), lambda k: starts_with(k, 'destroyed:'))) > 0 THEN 'Destroyed' WHEN len(list_filter(map_keys(tags), lambda k: starts_with(k, 'damaged:'))) > 0 OR tags['damage:building'] IS NOT NULL THEN 'Damaged' ELSE 'Standing' END AS status"
         - "coalesce(tags['building'], tags['destroyed:building'], tags['damaged:building'], tags['damage:building']) AS building"
         - tags['building:levels'] AS building_levels
         - tags['building:materials'] AS building_materials

@@ -2,7 +2,7 @@
 
 The Humanitarian OpenStreetMap Team (HOT) publishes OpenStreetMap data for every country as
 ready-to-use GIS layers: buildings, roads, waterways, health and education facilities, and
-more. Most countries are rebuilt monthly, as set out in [The schedule](reference/schedule.md),
+more. Most countries are rebuilt monthly, as set out in [Schedule groups and frequencies](reference/schedule.md),
 and every layer is published on HDX and in a STAC catalog.
 
 | Where | What it is for |
@@ -24,8 +24,8 @@ was last updated on HDX and when the next update is due.
 
 ## Reference
 
-- [What the exports contain](reference/contents.md): layers, formats, columns and file names.
-- [The schedule](reference/schedule.md): which countries are updated, and how often.
+- [Layers, formats and columns](reference/contents.md): layers, formats, columns and file names.
+- [Schedule groups and frequencies](reference/schedule.md): which countries are updated, and how often.
 
 ## Maintain the exports
 

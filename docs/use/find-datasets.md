@@ -12,7 +12,7 @@ https://data.humdata.org/dataset/hotosm_<iso3>_<layer>
 
 For example, the buildings of Nepal are at
 [hotosm_npl_buildings](https://data.humdata.org/dataset/hotosm_npl_buildings). The layer
-names are listed in [What the exports contain](../reference/contents.md).
+names are listed in [Layers, formats and columns](../reference/contents.md).
 
 Each dataset page offers the files for download and links to a report page with a map,
 the attributes and how complete they are.

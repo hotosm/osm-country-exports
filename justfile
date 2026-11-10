@@ -24,9 +24,15 @@ docs:
 one ISO3:
     uv run oex-cli osm --config configs/base.yaml --iso3 {{ISO3}} --no-hdx-push
 
-# Run scripts/schedule.yaml. Pushes to HDX. Takes --group, --frequency, --dry-run.
+# Run scripts/schedule.yaml. Pushes to HDX. Takes --due, --group, --frequency, --dry-run.
 sweep *ARGS:
     ./scripts/sweep.py "$@"
+
+# Refresh the Tasking Manager configs, then run every job that is due. Run this once a day.
+daily:
+    ./scripts/tm_configs.py --extract
+    ./scripts/tm_configs.py --sandbox --extract
+    ./scripts/sweep.py --due
 
 # Regenerate Tasking Manager configs from the active-projects API, writing no exports.
 tm-configs *ARGS:

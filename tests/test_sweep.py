@@ -3,7 +3,7 @@ import signal
 import sys
 import threading
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -264,8 +264,8 @@ def test_a_merged_country_config_loads_the_same_way_base_does(tmp_path, monkeypa
     monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
 
     # The sweep always passes --iso3, and pcode tagging refuses a config without one.
-    base = load_config(sweep.BASE_CONFIG, ["iso3=SDN"])
-    merged = load_config(sweep.country_config("SDN", "monthly"), ["iso3=SDN"])
+    base = load_config(sweep.BASE_CONFIG, {"iso3": "SDN"})
+    merged = load_config(sweep.country_config("SDN", "monthly"), {"iso3": "SDN"})
     assert merged.hdx.push == base.hdx.push is True
     assert merged.output.s3.enabled == base.output.s3.enabled is True
     assert len(merged.categories) == len(base.categories)
@@ -275,6 +275,7 @@ def test_a_merged_country_config_loads_the_same_way_base_does(tmp_path, monkeypa
 class StubJob:
     def __init__(self, job_id, argv):
         self.id = job_id
+        self.key = job_id
         self._argv = argv
 
     def argv(self):
@@ -413,7 +414,7 @@ def test_workers_bound_peak_concurrency(tmp_path, monkeypatch):
     running = 0
     lock = threading.Lock()
 
-    def observe(job, timeout, capture_dir, progress):
+    def observe(job, timeout, capture_dir, progress, on_success=None):
         nonlocal peak, running
         with lock:
             running += 1
@@ -511,7 +512,7 @@ def main_with(monkeypatch, tmp_path, argv, schedule):
     monkeypatch.setattr(sys, "argv", ["sweep", *argv])
     seen = {}
 
-    def record(jobs, timeout, workers):
+    def record(jobs, timeout, workers, on_success=None):
         seen.update(jobs=jobs, timeout=timeout, workers=workers)
         return []
 
@@ -543,3 +544,169 @@ def test_more_than_one_worker_gives_each_country_a_memory_budget(monkeypatch, tm
     )
     merged = yaml.safe_load(Path(seen["jobs"][0].config).read_text(encoding="utf-8"))
     assert merged["parallel"]["memory_gb"] == sweep.memory_gb_per_worker(4)
+
+
+def test_a_listed_country_takes_the_group_frequency(monkeypatch, tmp_path):
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    schedule = {
+        "groups": ["high_income"],
+        "high_income": {"frequency": "quarterly", "countries": ["AUT", "BEL"]},
+    }
+    jobs, _ = resolve(schedule)
+    assert [(job.iso3, job.frequency) for job in jobs] == [
+        ("AUT", "quarterly"),
+        ("BEL", "quarterly"),
+    ]
+
+
+def test_a_country_frequency_overrides_the_group(monkeypatch, tmp_path):
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    schedule = {
+        "groups": ["normal"],
+        "normal": {"frequency": "monthly", "countries": {"PAK": "weekly", "NPL": None}},
+    }
+    jobs, _ = resolve(schedule)
+    assert {job.iso3: job.frequency for job in jobs} == {"PAK": "weekly", "NPL": "monthly"}
+
+
+def test_a_folder_group_cannot_run_parallel_workers(tmp_path, monkeypatch):
+    """Only a country config can carry the per-worker memory budget."""
+    folder = tmp_path / "events"
+    folder.mkdir()
+    write_config(folder, "flood.yaml", OSM_CONFIG, frequency="daily")
+    monkeypatch.setattr(sweep, "REPO_ROOT", tmp_path)
+    schedule = {"groups": ["events"], "events": {"dir": "events", "workers": 2}}
+    with pytest.raises(sweep.ScheduleError, match="one job at a time"):
+        resolve(schedule)
+
+
+def _job(frequency: str, group: str = "normal") -> sweep.Job:
+    return sweep.Job(f"{group}/NPL", group, "osm", Path("npl.yaml"), "NPL", frequency=frequency)
+
+
+NOW = sweep.datetime(2026, 12, 1, 2, 0, tzinfo=sweep.UTC)
+
+
+@pytest.mark.parametrize(
+    ("frequency", "days_since", "due"),
+    [
+        ("monthly", None, True),
+        ("monthly", 29, False),
+        ("monthly", 30, True),
+        ("quarterly", 89, False),
+        ("quarterly", 90, True),
+        ("yearly", 364, False),
+        ("daily", 1, True),
+        ("as needed", 1000, False),
+    ],
+)
+def test_a_job_is_due_once_its_frequency_has_passed(frequency, days_since, due):
+    state = {} if days_since is None else {"NPL": (NOW - timedelta(days=days_since)).isoformat()}
+    assert sweep.is_due(_job(frequency), state, NOW) is due
+
+
+def test_moving_a_country_to_another_group_keeps_its_last_run():
+    state = {"NPL": (NOW - timedelta(days=5)).isoformat()}
+    assert not sweep.is_due(_job("monthly", group="priority"), state, NOW)
+    assert not sweep.is_due(_job("monthly", group="normal"), state, NOW)
+
+
+def test_an_unknown_frequency_is_a_schedule_error():
+    with pytest.raises(sweep.ScheduleError, match="sometimes"):
+        sweep.is_due(_job("sometimes"), {}, NOW)
+
+
+def test_only_successful_jobs_are_recorded(monkeypatch, tmp_path):
+    """A failed job stays due, so the next daily run retries it."""
+    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
+    jobs = [StubJob("normal/OK", ["true"]), StubJob("normal/BAD", ["false"])]
+    sweep.run_jobs(jobs, timeout=30, on_success=sweep.RunState().record_success)
+    assert set(sweep.load_state()) == {"normal/OK"}
+
+
+def test_due_runs_each_group_in_order_with_its_own_workers(monkeypatch, tmp_path):
+    schedule = {
+        "groups": ["priority", "normal"],
+        "priority": {"frequency": "monthly", "countries": ["SDN"]},
+        "normal": {"frequency": "monthly", "workers": 2, "countries": ["NPL", "BTN"]},
+    }
+    schedule_file = tmp_path / "schedule.yaml"
+    schedule_file.write_text(yaml.safe_dump(schedule), encoding="utf-8")
+    monkeypatch.setattr(sweep, "SCHEDULE_FILE", schedule_file)
+    monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
+    (tmp_path / "state.json").write_text(
+        '{"BTN": "' + sweep.datetime.now(sweep.UTC).isoformat() + '"}', encoding="utf-8"
+    )
+    monkeypatch.setattr(sweep, "acquire_lock", lambda: object())
+    monkeypatch.setattr(sys, "argv", ["sweep", "--due"])
+    calls = []
+    monkeypatch.setattr(
+        sweep,
+        "run_jobs",
+        lambda jobs, timeout, workers, on_success=None: (
+            calls.append(([j.iso3 for j in jobs], workers)) or []
+        ),
+    )
+    assert sweep.main() == 0
+    assert calls == [(["SDN"], 1), (["NPL"], 2)]
+
+
+def test_the_hdx_frequency_sync_reads_list_groups_like_the_sweep():
+    """HDX would otherwise advertise a frequency the schedule no longer runs."""
+    import sync_hdx_frequency
+
+    schedule = {
+        "groups": ["high_income", "events"],
+        "high_income": {"frequency": "quarterly", "countries": ["AUT", "BEL"]},
+        "events": {"dir": "configs/events", "frequency": "monthly"},
+    }
+    assert sync_hdx_frequency.scheduled_countries(schedule, None) == [
+        ("AUT", "quarterly"),
+        ("BEL", "quarterly"),
+    ]
+
+
+def test_a_daily_job_that_finished_after_yesterdays_tick_is_due_today():
+    """The tick fires at 02:00; yesterday's run finished at 02:20, under 24 hours ago."""
+    state = {"NPL": (NOW - timedelta(hours=23, minutes=40)).isoformat()}
+    assert sweep.is_due(_job("daily"), state, NOW)
+
+
+def test_a_numeric_frequency_is_a_schedule_error():
+    """HDX maps numbers back to names, so "30" would otherwise slip through as a frequency."""
+    with pytest.raises(sweep.ScheduleError, match="not an HDX frequency"):
+        sweep.is_due(_job("30"), {}, NOW)
+
+
+def test_parallel_workers_record_only_their_successes(monkeypatch, tmp_path):
+    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
+    jobs = [StubJob("normal/OK", ["true"]), StubJob("normal/BAD", ["false"])]
+    sweep.run_jobs(jobs, timeout=30, workers=2, on_success=sweep.RunState().record_success)
+    assert set(sweep.load_state()) == {"normal/OK"}
+
+
+def test_a_folder_job_keeps_its_group_in_the_key():
+    """Production and sandbox Tasking Manager project ids overlap."""
+    production = sweep.Job("tasking_manager/123", "tasking_manager", "osm", Path("a.yaml"), None)
+    sandbox = sweep.Job(
+        "tasking_manager_sandbox/123", "tasking_manager_sandbox", "osm", Path("b.yaml"), None
+    )
+    assert production.key != sandbox.key
+
+
+def test_the_workers_option_overrides_country_groups_only(monkeypatch, tmp_path):
+    folder = tmp_path / "events"
+    folder.mkdir()
+    write_config(folder, "flood.yaml", OSM_CONFIG, frequency="daily")
+    monkeypatch.setattr(sweep, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
+    schedule = {
+        "groups": ["normal", "events"],
+        "normal": {"frequency": "monthly", "workers": 2, "countries": ["NPL"]},
+        "events": {"dir": "events"},
+    }
+    jobs, _ = sweep.resolve(schedule, None, None, TODAY, workers_override=3)
+    assert {job.group: job.workers for job in jobs} == {"normal": 3, "events": 1}

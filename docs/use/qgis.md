@@ -44,7 +44,7 @@ That takes seconds for most layers.
 
 ![Buildings of Nepal loaded from GeoParquet over an OpenStreetMap basemap](../assets/qgis/geoparquet-on-map.jpg)
 
-!!! tip "Large layers: add one geometry type"
+!!! tip
     For a country's buildings or roads, reading the whole file can take many minutes. Add
     the layer by its URL as in [Add a file by its URL](#add-a-file-by-its-url), with the
     geometry type you need on the end, and QGIS loads it straight away:

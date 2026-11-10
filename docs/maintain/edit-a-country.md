@@ -64,10 +64,11 @@ Secrets in it stay as `${oc.env:...}` references, so the file is safe to read.
 
 ## Change how often a country updates
 
-Edit its entry in
+Move its ISO3 code to another group in
 [`scripts/schedule.yaml`](https://github.com/hotosm/osm-country-exports/blob/main/scripts/schedule.yaml),
-or move it to another group. See [The schedule](../reference/schedule.md) for the
-frequencies. The new frequency reaches HDX the next time the country is published.
+or give it its own frequency as shown in
+[Schedule groups and frequencies](../reference/schedule.md). The new frequency reaches
+HDX the next time the country is published.
 
 ## Add a country
 

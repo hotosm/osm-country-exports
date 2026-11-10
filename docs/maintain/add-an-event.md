@@ -42,7 +42,9 @@ categories_file: configs/events/_npl-flood-categories.yaml
 - `boundary.geom` is the area as GeoJSON; `buffer_meters` widens it.
 - `output.s3.folder` keeps the files apart from the country export.
 - `output.stac.group` lists the event under its own catalog.
-- `hdx.time_period_start` is the date of the first upload.
+- `hdx.time_period_start` starts the dataset's time period when the layers carry no date
+  column. It must then be on or before every source's snapshot; with Overture enabled,
+  that is the Overture release the run reads.
 - `hdx.combine` publishes all layers as one dataset, `hdx.combined.name`.
 - `categories_file` lists the layers. Files starting with `_` are shared and never run alone.
 
@@ -54,12 +56,19 @@ uv run oex-cli osm --config configs/events/NPL-FL-2026-flood-extent.yaml --no-hd
 uv run oex-cli osm --config configs/events/NPL-FL-2026-flood-extent.yaml --hdx-push
 ```
 
-The first run checks the output without pushing to HDX (files still upload to S3); the
-second publishes. With Overture enabled, use `oex-cli all` to run both.
+The first run writes the output to `output/` so you can check it, and uploads only the
+per-layer GeoParquet, which the combined map is built from, to S3. The second publishes.
+With Overture enabled, use `oex-cli all` to run both.
+
+The config decides which sources the dataset holds. Setting `source.overture.enabled` or
+`source.osm.enabled` to `false` removes that source's files from the dataset at the next
+publish.
 
 ## 4. Keep it updating
 
-Set `frequency:` to `daily`, `weekly` or `monthly`; this is also what HDX shows. The
+Set `frequency:` to `daily`, `weekly` or `monthly`; this is also what HDX shows. Once the
+file is merged to `main`, the daily `just daily` run on the export server publishes it and
+then keeps it on that frequency. The
 `events` group's `overrides:` in `scripts/schedule.yaml` can change when a file runs,
 disable it, or set an `expires:` date, without changing what HDX shows.
 

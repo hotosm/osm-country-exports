@@ -238,7 +238,7 @@ def run_campaigns(
 def configure_publishing() -> S3Settings:
     """HDX and S3 settings come from configs/base.yaml, so scripts and exports share them."""
     # base.yaml names no country, so pcode tagging, which needs one, is switched off to load it.
-    cfg = load_config(BASE_CONFIG, ["source.pcodes.enabled=false"])
+    cfg = load_config(BASE_CONFIG, {"source.pcodes.enabled": False})
     configure(cfg.hdx.site, cfg.hdx.user_agent)
     return s3_resolve(cfg.output.s3)
 

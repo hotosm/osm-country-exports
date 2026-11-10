@@ -5,7 +5,7 @@ description = "HOT OSM country-scale HDX exports."
 requires-python = ">=3.11"
 dependencies = [
     "hdx-python-api>=6.6.7",
-    "oex>=0.4.21",
+    "oex>=0.4.23",
     "omegaconf>=2.3.0",
     "psutil>=7.2.2",
     "pyyaml>=6.0.2",
@@ -36,4 +36,4 @@ extra-paths = ["scripts"]
 package = false
 
 [tool.uv.sources]
-quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "412b6e4d6439403099c11b9f2ddf4d781029b069" }
+quackosm = { git = "https://github.com/kshitijrajsharma/quackosm", rev = "edb08ddfd98defda5fae51976fb317cc7deef6df" }
