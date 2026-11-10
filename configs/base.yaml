@@ -14,6 +14,7 @@ output:
   formats: [gpkg, shp, geoparquet]
   metadata: true
   resume: true
+  skip_unchanged: true
   report:
     enabled: true
     related_datasets: true

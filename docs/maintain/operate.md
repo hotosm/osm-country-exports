@@ -25,7 +25,8 @@ just sweep --group normal --workers 4
 [Schedule groups and frequencies](../reference/schedule.md). Run `just daily` once a day,
 for example from a systemd timer: it refreshes the Tasking Manager configs, then runs
 `just sweep --due`. Run `just sweep --help` for every option. A sweep resumes by default, skipping layers
-already uploaded from the same snapshot. `--no-hdx-push` skips HDX, but files still upload
+already uploaded from the same snapshot. A layer whose features and settings match its last
+publish is not rebuilt either; only its HDX date moves forward. `--no-hdx-push` skips HDX, but files still upload
 to S3.
 
 ## Tasking Manager projects
