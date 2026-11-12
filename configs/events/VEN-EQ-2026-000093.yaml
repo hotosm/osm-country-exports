@@ -80,7 +80,6 @@ categories:
       select:
         - id
         - names.primary AS name
-        - names.common->>'en' AS name_en
         - class
         - subtype
         - height

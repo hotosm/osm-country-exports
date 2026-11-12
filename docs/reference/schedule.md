@@ -52,11 +52,14 @@ prints why.
 ## Frequencies
 
 The frequencies are the ones HDX uses: `daily`, `weekly`, `monthly`, `quarterly`,
-`yearly`, and `as needed`. `just sweep --due` runs every job whose last successful run is
-older than its frequency, group by group in order, and records each success in
-`.sweep/state.json`. `just daily` runs it once the Tasking Manager configs are refreshed;
-run that once a day. A job that fails stays due, so the next day's run tries it again.
-Jobs on `as needed` run only by hand, with `--frequency "as needed"`.
+`yearly`, and `as needed`. `just sweep --due` runs every job whose last publish is older
+than its frequency, group by group in order. The last publish is the oldest `updated` time
+on the job's STAC Items, which oex sets when a layer reaches HDX. A layer with no Item,
+such as a new category, or with an undated one, left by a failed publish, makes its job due.
+A job that doesn't publish to HDX, such as a Tasking Manager project, is always due. Source
+`.env` first, since the sweep reads every config. `just daily` runs it after refreshing the
+Tasking Manager configs. Jobs on `as needed` run only by hand, with
+`--frequency "as needed"`.
 
 For a country, the frequency is also the update frequency its HDX datasets show, and the
 schedule is the only place to set it. A change reaches HDX the next time the country is

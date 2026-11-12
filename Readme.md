@@ -83,16 +83,17 @@ interval.
 A project has no country code, so its identity is the project id through
 `output.s3.folder`, which puts artifacts at
 `TM/hotosm_project_{id}/{category}/{geometry}/hotosm_project_{id}_{category}_{geometry}_{format}.zip`.
-With no country, the extract comes from a planet PBF clipped to the project polygon.
-Set the PBF with `TM_PBF`. Categories follow each project's mapping types.
+With no country, the extract is a PBF clipped to the project polygon, from the planet for
+production projects and from the newest export in `TM_SANDBOX_PBF` for sandbox projects.
+Categories follow each project's mapping types.
 
 `--extract` cuts every project's PBF in a single osmium pass and points each
 config at its own small file. osmium streams the whole input once per
 invocation, so clipping the planet separately for each project would read it
 once per project; one pass with N extracts reads it once in total. The per
 project files land in `data/tm/`, or `data/tm_sandbox/`, and `--pbf-dir` moves
-them. `--extract` needs a local path, since osmium cannot read `s3://`; without
-it, each config points at the whole source PBF instead.
+them. It downloads an `s3://` source first, since osmium reads local files only, and
+refreshes the planet when a newer one is published. Sandbox configs need `--extract`.
 
 A project whose extract comes out empty is reported, because that means the
 source PBF does not cover it and the export would publish nothing.

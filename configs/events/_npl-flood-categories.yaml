@@ -165,7 +165,8 @@ categories:
         - tags['bridge'] AS bridge
         - tags['layer'] AS layer
         - tags['source'] AS source
-      where: []
+      # highway=* nodes are stops and crossings, not roads.
+      where: ["ST_GeometryType(geometry) <> 'POINT'"]
     overture:
       enabled: false
       tiles: false
@@ -375,12 +376,11 @@ categories:
       select:
         - id
         - names.primary AS name
-        - names.common->>'en' AS name_en
         - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
-        - confidence
+        - round(confidence, 2) AS confidence
         - sources[1].dataset AS source
       where:
         - "list_has_any(taxonomy.hierarchy, ['school', 'college_university']) OR taxonomy.primary IN ('education', 'educational_service')"
@@ -438,12 +438,11 @@ categories:
       select:
         - id
         - names.primary AS name
-        - names.common->>'en' AS name_en
         - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
-        - confidence
+        - round(confidence, 2) AS confidence
         - sources[1].dataset AS source
       where:
         - "list_has_any(taxonomy.hierarchy, ['hospital', 'outpatient_care_facility', 'emergency_or_urgent_care_facility', 'pharmacy_and_drug_store', 'blood_and_plasma_donation_center']) OR taxonomy.primary = 'health_care'"
@@ -699,12 +698,11 @@ categories:
       select:
         - id
         - names.primary AS name
-        - names.common->>'en' AS name_en
         - taxonomy.primary AS category
         - addresses[1].freeform AS address
         - phones[1] AS phone
         - websites[1] AS website
-        - confidence
+        - round(confidence, 2) AS confidence
         - sources[1].dataset AS source
       where: []
     temporal:

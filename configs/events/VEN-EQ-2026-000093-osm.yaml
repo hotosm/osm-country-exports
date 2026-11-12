@@ -159,7 +159,8 @@ categories:
     - tags['bridge'] AS bridge
     - tags['layer'] AS layer
     - tags['source'] AS source
-    where: []
+    # highway=* nodes are stops and crossings, not roads.
+    where: ["ST_GeometryType(geometry) <> 'POINT'"]
   overture:
     enabled: false
   temporal:

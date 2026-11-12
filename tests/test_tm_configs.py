@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import cast
 
 import pytest
@@ -7,7 +8,8 @@ from upath import UPath
 
 import tm_configs
 
-TEMPLATE = OmegaConf.create(tm_configs.TEMPLATE.read_text(encoding="utf-8"))
+TEMPLATE_PATH = tm_configs.TEMPLATE
+TEMPLATE = OmegaConf.create(TEMPLATE_PATH.read_text(encoding="utf-8"))
 GEOM = {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]}
 
 
@@ -27,8 +29,8 @@ def feature(project_id, mapping_types, geom=None):
     }
 
 
-def build(project_id=4242, mapping_types=(2,), sandbox=False):
-    return tm_configs.build_config(TEMPLATE, feature(project_id, list(mapping_types)), sandbox)
+def build(project_id=4242, mapping_types=(2,)):
+    return tm_configs.build_config(TEMPLATE, feature(project_id, list(mapping_types)))
 
 
 def test_mapping_type_ints_are_one_based_indexes():
@@ -95,13 +97,33 @@ def pbf_path(cfg) -> str:
     return container["source"]["osm"]["pbf_path"]
 
 
-def test_production_reads_the_planet_pbf_from_the_environment():
-    assert pbf_path(build()) == "${oc.env:TM_PBF}"
+@pytest.mark.parametrize("template", ["_tm-template.yaml", "seagrass_extract.yaml"])
+def test_production_projects_read_the_planet_the_countries_read(template):
+    configs = tm_configs.REPO_ROOT / "configs"
+    assert pbf_path(OmegaConf.load(configs / template)) == pbf_path(
+        OmegaConf.load(configs / "base.yaml")
+    )
 
 
-def test_every_project_reads_the_pbf_from_one_environment_variable():
-    assert pbf_path(build(sandbox=True)) == f"${{oc.env:{tm_configs.PBF_ENV}}}"
-    assert pbf_path(build(sandbox=False)) == f"${{oc.env:{tm_configs.PBF_ENV}}}"
+def test_sandbox_configs_need_extract(tmp_path, monkeypatch, capsys):
+    """Without it a sandbox config would point at the folder of daily exports."""
+    monkeypatch.setattr("sys.argv", ["tm_configs", "--sandbox", "--out", str(tmp_path)])
+    assert tm_configs.main() == 2
+    assert "--sandbox needs --extract" in capsys.readouterr().err
+
+
+def test_a_project_without_its_own_extract_reads_the_resolved_source(tmp_path, monkeypatch):
+    """The sandbox variable is a folder, so the fallback must be the day's downloaded file."""
+    source = tmp_path / "2026-11-10-sandbox-export.pbf"
+    monkeypatch.setattr(
+        "sys.argv", ["tm_configs", "--sandbox", "--extract", "--out", str(tmp_path)]
+    )
+    monkeypatch.setenv(tm_configs.SANDBOX_PBF_ENV, "s3://sandbox/exports/")
+    monkeypatch.setattr(tm_configs, "fetch_active_projects", lambda *_: [feature(1, [2])])
+    monkeypatch.setattr(tm_configs, "cut_project_extracts", lambda *_: ({}, source))
+    assert tm_configs.main() == 0
+    written = OmegaConf.load(tmp_path / "1.yaml")
+    assert written.source.osm.pbf_path == str(source)
 
 
 def test_the_template_is_never_mutated_between_projects():
@@ -141,9 +163,61 @@ def test_dry_run_touches_nothing(tmp_path):
     assert (tmp_path / "9.yaml").read_text(encoding="utf-8") == "stale"
 
 
-def test_a_per_project_pbf_overrides_the_environment_default(tmp_path):
-    cfg = tm_configs.build_config(TEMPLATE, feature(7, [2]), False, tmp_path / "7.osm.pbf")
+def test_a_config_on_its_own_extract_reads_it_and_never_downloads_the_planet(tmp_path):
+    """A kept extract falls behind the published planet, so oex would download over it."""
+    cfg = tm_configs.build_config(TEMPLATE, feature(7, [2]), tmp_path / "7.osm.pbf")
     assert pbf_path(cfg) == str(tmp_path / "7.osm.pbf")
+    assert cfg.source.osm.auto_download_planet is False
+
+
+@pytest.fixture
+def planet_refreshes(monkeypatch, tmp_path):
+    """Records each planet refresh instead of downloading the planet."""
+    monkeypatch.setenv("OEX_S3_BUCKET", "exports")
+    monkeypatch.setenv("OEX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv(tm_configs.SANDBOX_PBF_ENV, "s3://sandbox/exports/")
+    calls = []
+    monkeypatch.setattr(tm_configs, "refresh_planet_pbf", lambda _osm, path: calls.append(path))
+    return calls
+
+
+def test_production_projects_extract_from_the_refreshed_template_planet(tmp_path, planet_refreshes):
+    """Sandbox exports lack production edits, so a set sandbox variable must not leak in."""
+    planet = str(tmp_path / "data/osm/planet/planet-latest.osm.pbf")
+    assert tm_configs.extract_source(tm_configs.TEMPLATE, sandbox=False) == planet
+    assert planet_refreshes == [Path(planet)]
+
+
+@pytest.mark.parametrize(
+    ("setting", "replacement"),
+    [
+        ("engine: planet", "engine: postpass"),
+        ("auto_download_planet: true", "auto_download_planet: false"),
+        ("pbf_path: ${oc.env:OEX_DATA_DIR,.}", "pbf_path: s3://bucket"),
+    ],
+)
+def test_the_planet_is_left_alone_unless_the_template_refreshes_a_local_one(
+    tmp_path, planet_refreshes, setting, replacement
+):
+    """A remote source is copied from its own location, never from planet.openstreetmap.org."""
+    text = tm_configs.TEMPLATE.read_text(encoding="utf-8")
+    assert setting in text
+    template = tmp_path / "template.yaml"
+    template.write_text(text.replace(setting, replacement, 1), encoding="utf-8")
+    tm_configs.extract_source(template, sandbox=False)
+    assert planet_refreshes == []
+
+
+def test_sandbox_projects_extract_from_the_sandbox_exports(planet_refreshes):
+    assert tm_configs.extract_source(TEMPLATE_PATH, sandbox=True) == "s3://sandbox/exports/"
+    assert planet_refreshes == []
+
+
+def test_sandbox_extracts_need_the_sandbox_exports_set(monkeypatch):
+    """The planet does not hold sandbox edits, so there is nothing to fall back to."""
+    monkeypatch.delenv(tm_configs.SANDBOX_PBF_ENV, raising=False)
+    with pytest.raises(tm_configs.TaskingManagerError, match=tm_configs.SANDBOX_PBF_ENV):
+        tm_configs.extract_source(TEMPLATE_PATH, sandbox=True)
 
 
 def test_the_osmium_config_holds_one_extract_per_project(tmp_path):
@@ -158,12 +232,6 @@ def test_the_osmium_config_holds_one_extract_per_project(tmp_path):
 def test_each_extract_gets_its_own_polygon_file(tmp_path):
     tm_configs.write_osmium_config([feature(1, [2])], tmp_path)
     assert json.loads((tmp_path / "1.geojson").read_text(encoding="utf-8")) == GEOM
-
-
-def test_extract_needs_the_source_pbf_in_the_environment(tmp_path, monkeypatch):
-    monkeypatch.delenv(tm_configs.PBF_ENV, raising=False)
-    with pytest.raises(tm_configs.TaskingManagerError, match=tm_configs.PBF_ENV):
-        tm_configs.cut_project_extracts([feature(1, [2])], sandbox=False, pbf_dir=tmp_path)
 
 
 def test_a_plain_location_is_used_as_is():
@@ -203,13 +271,8 @@ def test_a_remote_source_is_downloaded_once_and_then_reused(tmp_path, memory_exp
     assert "reusing" in capsys.readouterr().out
 
 
-def test_extract_rejects_a_source_that_is_not_there(tmp_path, monkeypatch):
-    monkeypatch.setenv(tm_configs.PBF_ENV, str(tmp_path / "absent.osm.pbf"))
+def test_extract_rejects_a_source_that_is_not_there(tmp_path):
     with pytest.raises(tm_configs.TaskingManagerError, match="is not a file"):
-        tm_configs.cut_project_extracts([feature(1, [2])], sandbox=False, pbf_dir=tmp_path)
-
-
-def test_an_extract_without_the_source_variable_fails(tmp_path, monkeypatch):
-    monkeypatch.delenv(tm_configs.PBF_ENV, raising=False)
-    with pytest.raises(tm_configs.TaskingManagerError, match=tm_configs.PBF_ENV):
-        tm_configs.cut_project_extracts([feature(1, [2])], sandbox=True, pbf_dir=tmp_path)
+        tm_configs.cut_project_extracts(
+            [feature(1, [2])], str(tmp_path / "absent.osm.pbf"), tmp_path
+        )

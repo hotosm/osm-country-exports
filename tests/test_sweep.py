@@ -275,7 +275,6 @@ def test_a_merged_country_config_loads_the_same_way_base_does(tmp_path, monkeypa
 class StubJob:
     def __init__(self, job_id, argv):
         self.id = job_id
-        self.key = job_id
         self._argv = argv
 
     def argv(self):
@@ -414,7 +413,7 @@ def test_workers_bound_peak_concurrency(tmp_path, monkeypatch):
     running = 0
     lock = threading.Lock()
 
-    def observe(job, timeout, capture_dir, progress, on_success=None):
+    def observe(job, timeout, capture_dir, progress):
         nonlocal peak, running
         with lock:
             running += 1
@@ -512,7 +511,7 @@ def main_with(monkeypatch, tmp_path, argv, schedule):
     monkeypatch.setattr(sys, "argv", ["sweep", *argv])
     seen = {}
 
-    def record(jobs, timeout, workers, on_success=None):
+    def record(jobs, timeout, workers):
         seen.update(jobs=jobs, timeout=timeout, workers=workers)
         return []
 
@@ -601,27 +600,13 @@ NOW = sweep.datetime(2026, 12, 1, 2, 0, tzinfo=sweep.UTC)
     ],
 )
 def test_a_job_is_due_once_its_frequency_has_passed(frequency, days_since, due):
-    state = {} if days_since is None else {"NPL": (NOW - timedelta(days=days_since)).isoformat()}
-    assert sweep.is_due(_job(frequency), state, NOW) is due
-
-
-def test_moving_a_country_to_another_group_keeps_its_last_run():
-    state = {"NPL": (NOW - timedelta(days=5)).isoformat()}
-    assert not sweep.is_due(_job("monthly", group="priority"), state, NOW)
-    assert not sweep.is_due(_job("monthly", group="normal"), state, NOW)
+    last = None if days_since is None else NOW - timedelta(days=days_since)
+    assert sweep.is_due(_job(frequency), last, NOW) is due
 
 
 def test_an_unknown_frequency_is_a_schedule_error():
     with pytest.raises(sweep.ScheduleError, match="sometimes"):
-        sweep.is_due(_job("sometimes"), {}, NOW)
-
-
-def test_only_successful_jobs_are_recorded(monkeypatch, tmp_path):
-    """A failed job stays due, so the next daily run retries it."""
-    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
-    jobs = [StubJob("normal/OK", ["true"]), StubJob("normal/BAD", ["false"])]
-    sweep.run_jobs(jobs, timeout=30, on_success=sweep.RunState().record_success)
-    assert set(sweep.load_state()) == {"normal/OK"}
+        sweep.is_due(_job("sometimes"), None, NOW)
 
 
 def test_due_runs_each_group_in_order_with_its_own_workers(monkeypatch, tmp_path):
@@ -635,9 +620,10 @@ def test_due_runs_each_group_in_order_with_its_own_workers(monkeypatch, tmp_path
     monkeypatch.setattr(sweep, "SCHEDULE_FILE", schedule_file)
     monkeypatch.setattr(sweep, "COUNTRY_CONFIG_DIR", tmp_path / "countries")
     monkeypatch.setattr(sweep, "WORK_DIR", tmp_path / "work")
-    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
-    (tmp_path / "state.json").write_text(
-        '{"BTN": "' + sweep.datetime.now(sweep.UTC).isoformat() + '"}', encoding="utf-8"
+    monkeypatch.setattr(
+        sweep,
+        "last_publish",
+        lambda job: sweep.datetime.now(sweep.UTC) if job.iso3 == "BTN" else None,
     )
     monkeypatch.setattr(sweep, "acquire_lock", lambda: object())
     monkeypatch.setattr(sys, "argv", ["sweep", "--due"])
@@ -645,9 +631,7 @@ def test_due_runs_each_group_in_order_with_its_own_workers(monkeypatch, tmp_path
     monkeypatch.setattr(
         sweep,
         "run_jobs",
-        lambda jobs, timeout, workers, on_success=None: (
-            calls.append(([j.iso3 for j in jobs], workers)) or []
-        ),
+        lambda jobs, timeout, workers: calls.append(([j.iso3 for j in jobs], workers)) or [],
     )
     assert sweep.main() == 0
     assert calls == [(["SDN"], 1), (["NPL"], 2)]
@@ -670,31 +654,13 @@ def test_the_hdx_frequency_sync_reads_list_groups_like_the_sweep():
 
 def test_a_daily_job_that_finished_after_yesterdays_tick_is_due_today():
     """The tick fires at 02:00; yesterday's run finished at 02:20, under 24 hours ago."""
-    state = {"NPL": (NOW - timedelta(hours=23, minutes=40)).isoformat()}
-    assert sweep.is_due(_job("daily"), state, NOW)
+    assert sweep.is_due(_job("daily"), NOW - timedelta(hours=23, minutes=40), NOW)
 
 
 def test_a_numeric_frequency_is_a_schedule_error():
     """HDX maps numbers back to names, so "30" would otherwise slip through as a frequency."""
     with pytest.raises(sweep.ScheduleError, match="not an HDX frequency"):
-        sweep.is_due(_job("30"), {}, NOW)
-
-
-def test_parallel_workers_record_only_their_successes(monkeypatch, tmp_path):
-    monkeypatch.setattr(sweep, "STATE_FILE", tmp_path / "state.json")
-    monkeypatch.setattr(sweep, "WORK_DIR", tmp_path)
-    jobs = [StubJob("normal/OK", ["true"]), StubJob("normal/BAD", ["false"])]
-    sweep.run_jobs(jobs, timeout=30, workers=2, on_success=sweep.RunState().record_success)
-    assert set(sweep.load_state()) == {"normal/OK"}
-
-
-def test_a_folder_job_keeps_its_group_in_the_key():
-    """Production and sandbox Tasking Manager project ids overlap."""
-    production = sweep.Job("tasking_manager/123", "tasking_manager", "osm", Path("a.yaml"), None)
-    sandbox = sweep.Job(
-        "tasking_manager_sandbox/123", "tasking_manager_sandbox", "osm", Path("b.yaml"), None
-    )
-    assert production.key != sandbox.key
+        sweep.is_due(_job("30"), None, NOW)
 
 
 def test_the_workers_option_overrides_country_groups_only(monkeypatch, tmp_path):
@@ -710,3 +676,109 @@ def test_the_workers_option_overrides_country_groups_only(monkeypatch, tmp_path)
     }
     jobs, _ = sweep.resolve(schedule, None, None, TODAY, workers_override=3)
     assert {job.group: job.workers for job in jobs} == {"normal": 3, "events": 1}
+
+
+ITEM_CONFIG = (
+    "key: hotosm\n"
+    + OSM_CONFIG
+    + "hdx:\n  push: true\n"
+    + "output:\n  metadata: true\n  s3:\n    enabled: true\n    bucket: exports\n    prefix: ISO3\n"
+    + "categories:\n  - name: Roads\n  - name: Schools\n  - name: Buildings\n"
+    + "  - name: Places\n    osm:\n      enabled: false\n"
+)
+
+
+class ItemStore:
+    """The bucket's Items by key, read the way oex's catalog store reads them."""
+
+    def __init__(self, items: dict[str, dict]):
+        self.items = items
+
+    def read(self, key):
+        return self.items.get(key), None
+
+
+def _published(tmp_path, monkeypatch, items: dict[str, dict]) -> sweep.Job:
+    config = write_config(tmp_path, "npl.yaml", ITEM_CONFIG)
+    monkeypatch.setattr(sweep, "S3CatalogStore", lambda cfg: ItemStore(items))
+    return sweep.Job("normal/NPL", "normal", "osm", config, "NPL", frequency="monthly")
+
+
+def _key(category: str, source: str = "osm") -> str:
+    return f"ISO3/NPL/{category}/hotosm_npl_{category}_{source}_item.json"
+
+
+def _item(updated: str | None) -> dict:
+    """`updated` is set only once the layer's publish succeeded."""
+    return {"properties": {"updated": updated} if updated else {}}
+
+
+def test_the_last_publish_is_the_oldest_configured_layer_of_the_jobs_source(tmp_path, monkeypatch):
+    """A run that stopped partway left one layer older, so the job stays due."""
+    job = _published(
+        tmp_path,
+        monkeypatch,
+        {
+            _key("roads"): _item("2026-12-01T02:30:00Z"),
+            _key("schools"): _item("2026-11-20T03:00:00Z"),
+            _key("buildings"): _item("2026-11-25T03:00:00Z"),
+            _key("buildings", "overture"): _item("2026-01-01T00:00:00Z"),
+            _key("retired_layer"): _item("2025-01-01T00:00:00Z"),
+        },
+    )
+    assert sweep.last_publish(job) == sweep.datetime(2026, 11, 20, 3, 0, tzinfo=sweep.UTC)
+
+
+def test_a_newly_configured_category_makes_the_job_due(tmp_path, monkeypatch):
+    """oex writes an Item for empty layers too, so a missing one means the layer never ran."""
+    published = {_key(name): _item("2026-11-20T03:00:00Z") for name in ("roads", "schools")}
+    assert sweep.last_publish(_published(tmp_path, monkeypatch, published)) is None
+
+
+def test_a_layer_whose_publish_failed_makes_the_job_due(tmp_path, monkeypatch):
+    """oex stages the Item before the publish, which reads it, and dates it only on success."""
+    published = {_key(name): _item("2026-12-01T00:00:00Z") for name in ("roads", "schools")}
+    published[_key("buildings")] = _item(None)
+    assert sweep.last_publish(_published(tmp_path, monkeypatch, published)) is None
+
+
+@pytest.mark.parametrize(
+    ("setting", "turned_off"),
+    [
+        ("  s3:\n    enabled: true\n", "  s3:\n    enabled: false\n"),
+        ("  metadata: true\n", "  metadata: false\n  report:\n    enabled: false\n"),
+        ("  push: true\n", "  push: false\n"),
+    ],
+    ids=["s3-off", "metadata-off", "hdx-push-off"],
+)
+def test_a_job_oex_writes_no_items_for_is_always_due(tmp_path, setting, turned_off):
+    config = write_config(tmp_path, "tm.yaml", ITEM_CONFIG.replace(setting, turned_off, 1))
+    job = sweep.Job("tasking_manager/1", "tasking_manager", "osm", config, None, frequency="daily")
+    assert sweep.last_publish(job) is None
+
+
+def test_a_category_the_source_cannot_export_is_left_out(tmp_path, monkeypatch):
+    """An Overture category without a theme is skipped by oex, so it never gets an Item."""
+    categories = ITEM_CONFIG[ITEM_CONFIG.index("categories:") :]
+    body = ITEM_CONFIG.replace(categories, "") + (
+        "categories:\n"
+        "  - name: Roads\n    overture:\n      theme: transportation\n      feature_type: segment\n"
+        "  - name: Lakes\n    overture:\n      enabled: true\n"
+    )
+    config = write_config(tmp_path, "npl.yaml", body)
+    items = {_key("roads", "overture"): _item("2026-12-01T00:00:00Z")}
+    monkeypatch.setattr(sweep, "S3CatalogStore", lambda cfg: ItemStore(items))
+    job = sweep.Job("normal/NPL", "normal", "overture", config, "NPL", frequency="monthly")
+    assert sweep.last_publish(job) == sweep.datetime(2026, 12, 1, tzinfo=sweep.UTC)
+
+
+def test_a_config_that_cannot_load_names_its_job(tmp_path, monkeypatch):
+    """Otherwise one config with an unset variable stops --due with no hint of which."""
+    monkeypatch.delenv("OEX_UNSET_PBF", raising=False)
+    unset_pbf = OSM_CONFIG.replace(
+        "enabled: true\n", "enabled: true\n    pbf_path: ${oc.env:OEX_UNSET_PBF}\n", 1
+    )
+    config = write_config(tmp_path, "1.yaml", unset_pbf)
+    job = sweep.Job("tasking_manager/1", "tasking_manager", "osm", config, None, frequency="daily")
+    with pytest.raises(sweep.ScheduleError, match="tasking_manager/1: cannot read"):
+        sweep.due_jobs([job], NOW)

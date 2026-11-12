@@ -44,8 +44,8 @@ source:
     enabled: true
     engine: planet
     cache_dir: ${oc.env:OEX_DATA_DIR,.}/data/osm
-    pbf_path: ${oc.env:TM_PBF}
-    auto_download_planet: false
+    pbf_path: ${oc.env:OEX_DATA_DIR,.}/data/osm/planet/planet-latest.osm.pbf
+    auto_download_planet: true
     planet_fallback: false
   pcodes:
     enabled: false

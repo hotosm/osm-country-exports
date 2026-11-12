@@ -7,8 +7,8 @@ just setup
 cp .env.example .env
 ```
 
-Fill in `.env` with the S3 bucket, the HDX key, organisation and maintainer, and `TM_PBF`
-(the planet file, for Tasking Manager exports). Point `OEX_DATA_DIR` at a large disk; the
+Fill in `.env` with the S3 bucket, the HDX key, organisation and maintainer, and
+`TM_SANDBOX_PBF`, the sandbox's export folder. Point `OEX_DATA_DIR` at a large disk; the
 planet file alone was about 95 GB in October 2026.
 
 ## Run exports
@@ -36,8 +36,9 @@ just tm
 just tm-sandbox
 ```
 
-Each writes a config for every project active in the last 24 hours, cuts its area from
-`TM_PBF`, then runs every config in the group's folder. Configs stay until removed by hand.
+Each writes a config for every project active in the last 24 hours, cuts its area from the
+planet (refreshed when a newer one is out) or from the newest export in `TM_SANDBOX_PBF`,
+then runs every config in the group's folder. Configs stay until removed by hand.
 
 ## Change the layers
 

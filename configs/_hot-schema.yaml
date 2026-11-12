@@ -79,7 +79,8 @@ categories:
         - tags['bridge'] AS bridge
         - tags['layer'] AS layer
         - tags['source'] AS source
-      where: []
+      # highway=* nodes are stops and crossings, not roads.
+      where: ["ST_GeometryType(geometry) <> 'POINT'"]
     overture:
       enabled: false
     transliterate:
@@ -393,7 +394,7 @@ categories:
   - name: sea_ports
     formats: [gpkg, shp, geojson, kml, geoparquet]
     hdx:
-      title: Sea Ports
+      title: Ports and Ferry Terminals
       notes: |
         Sea ports, harbours and ferry terminals. Useful for maritime logistics, supply-chain analysis, and coastal access planning.
 

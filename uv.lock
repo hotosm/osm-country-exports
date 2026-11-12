@@ -999,6 +999,7 @@ name = "hotosm-country-exports"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
+    { name = "botocore" },
     { name = "hdx-python-api" },
     { name = "oex" },
     { name = "omegaconf" },
@@ -1020,8 +1021,9 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "botocore", specifier = ">=1.43.9" },
     { name = "hdx-python-api", specifier = ">=6.6.7" },
-    { name = "oex", specifier = ">=0.4.23" },
+    { name = "oex", specifier = ">=0.4.29" },
     { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "psutil", specifier = ">=7.2.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -1546,7 +1548,7 @@ wheels = [
 
 [[package]]
 name = "oex"
-version = "0.4.23"
+version = "0.4.29"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "antimeridian" },
@@ -1568,9 +1570,9 @@ dependencies = [
     { name = "unidecode" },
     { name = "universal-pathlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/b3/952fd38aa0cba6d033df96f2a26029ce044e1b5b2e3e2e4ab05e2d08d0a7/oex-0.4.23.tar.gz", hash = "sha256:5ada7c06228255ac4cd3a6a0ba3900b1e3889788497d3fa222decfa2457f9f11", size = 249985, upload-time = "2026-11-10T10:22:40.848Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/37/72fe1478c14b65ff3abbeb6aa9914b47401c912c19b7b28eb541ce735f04/oex-0.4.29.tar.gz", hash = "sha256:7fcff7b12f85b32fd454a96239c007fa7ea1f8f965030910d7e818f39be927c4", size = 265392, upload-time = "2026-11-12T14:41:21.164Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/1b/f4cef3917f290833899d4fe633d691b47cee6bba127881ddb3edde60c5d8/oex-0.4.23-py3-none-any.whl", hash = "sha256:550ab9841b4528ea3d9cc81f7ec5a600e463c41cb87c2145e300fb78aa54a0e8", size = 156154, upload-time = "2026-11-10T10:22:39.377Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/80/83ed14a236357a0ddd0557a1469207bb27e335673bdc10dff3f6fbc7c502/oex-0.4.29-py3-none-any.whl", hash = "sha256:079c5ce22ce0f668d46473569b9efd820d373719e6ea865406a7ebcc77ca1352", size = 163677, upload-time = "2026-11-12T14:41:19.519Z" },
 ]
 
 [[package]]

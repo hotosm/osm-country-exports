@@ -9,11 +9,11 @@
     sweep.py --group priority --no-resume           re-export even if state says done
     sweep.py --group normal --only ZWE,VNM          just those countries
     sweep.py --group normal --workers 4             four countries at once
-    sweep.py --due                                  only jobs whose last success is older
+    sweep.py --due                                  only jobs whose last publish is older
                                                     than their frequency, every group in order
 
-With more than one worker each job's output goes to .sweep/logs/<job-id>.log. Every
-successful job is recorded in .sweep/state.json, which --due reads.
+With more than one worker each job's output goes to .sweep/logs/<job-id>.log. --due reads
+each job's last publish from its published STAC Items.
 
 Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds the lock.
 """
@@ -21,11 +21,10 @@ Exit codes: 1 a job failed, 2 the schedule is malformed, 3 another sweep holds t
 import argparse
 import fcntl
 import json
-import os
 import subprocess
 import sys
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -35,9 +34,14 @@ from typing import Protocol
 
 import psutil
 import yaml
+from botocore.exceptions import BotoCoreError, ClientError
 from hdx.data.dataset import Dataset
+from oex.catalog import S3CatalogStore
+from oex.config.loader import ConfigError, load_config
+from oex.stac import last_published, writes_items
 from oex.system import adaptive_parallel_resources
 from omegaconf import OmegaConf
+from omegaconf.errors import OmegaConfBaseException
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEDULE_FILE = REPO_ROOT / "scripts" / "schedule.yaml"
@@ -48,7 +52,7 @@ MANUAL_FREQUENCY = "as needed"
 COMMAND_SOURCES = ("osm", "overture")
 DEFAULT_TIMEOUT_SECONDS = 12 * 60 * 60
 STOP_GRACE_SECONDS = 60
-STATE_FILE = WORK_DIR / "state.json"
+CATALOG_READERS = 16
 
 
 class ScheduleError(Exception):
@@ -58,9 +62,6 @@ class ScheduleError(Exception):
 class Runnable(Protocol):
     @property
     def id(self) -> str: ...
-
-    @property
-    def key(self) -> str: ...
 
     def argv(self) -> list[str]: ...
 
@@ -75,12 +76,6 @@ class Job:
     extra: tuple[str, ...] = ()
     frequency: str = MANUAL_FREQUENCY
     workers: int = 1
-
-    @property
-    def key(self) -> str:
-        """A country drops its group so it keeps its run history when moved to another tier;
-        a config keeps it, since production and sandbox project ids overlap."""
-        return self.id.split("/", 1)[1] if self.iso3 else self.id
 
     def argv(self) -> list[str]:
         argv = ["uv", "run", "oex-cli", self.command, "--config", str(self.config)]
@@ -289,39 +284,35 @@ def acquire_lock():
     return handle
 
 
-def load_state() -> dict[str, str]:
-    if not STATE_FILE.exists():
-        return {}
-    return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+def last_publish(job: Job) -> datetime | None:
+    """When the job's layers last all reached HDX; None makes the job due."""
+    cfg = load_config(job.config, {"iso3": job.iso3} if job.iso3 else None)
+    if not writes_items(cfg):
+        return None
+    return last_published(cfg, job.command, S3CatalogStore(cfg))
 
 
-class RunState:
-    """Last success per job key, written after every job so an interrupted sweep keeps it."""
+def due_jobs(jobs: list[Job], now: datetime) -> list[Job]:
+    def published(job: Job) -> datetime | None:
+        try:
+            return last_publish(job)
+        except (ConfigError, OmegaConfBaseException, BotoCoreError, ClientError) as error:
+            raise ScheduleError(f"{job.id}: cannot read its last publish: {error}") from error
 
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-
-    def record_success(self, job: Runnable) -> None:
-        with self._lock:
-            state = load_state()
-            state[job.key] = datetime.now(UTC).isoformat(timespec="seconds")
-            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-            # Replaced in one step, so an interrupted write cannot leave half a file.
-            partial = STATE_FILE.with_suffix(".tmp")
-            partial.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
-            os.replace(partial, STATE_FILE)
+    with ThreadPoolExecutor(max_workers=CATALOG_READERS) as pool:
+        last = list(pool.map(published, jobs))
+    return [job for job, moment in zip(jobs, last, strict=True) if is_due(job, moment, now)]
 
 
-def is_due(job: Job, state: dict[str, str], now: datetime) -> bool:
-    """Due once the frequency's days have passed since the last success, counted in calendar
+def is_due(job: Job, last: datetime | None, now: datetime) -> bool:
+    """Due once the frequency's days have passed since the last publish, counted in calendar
     days so a run that finished after the daily tick started still counts as yesterday's."""
     days = Dataset.transform_update_frequency(str(job.frequency))
     if days is None or not str(days).lstrip("-").isdigit():
         raise ScheduleError(f"{job.id}: {job.frequency!r} is not an HDX frequency name")
     if int(days) <= 0:
         return False
-    last = state.get(job.key)
-    return last is None or (now.date() - datetime.fromisoformat(last).date()).days >= int(days)
+    return last is None or (now.date() - last.date()).days >= int(days)
 
 
 def select_countries(jobs: list[Job], only: str) -> list[Job]:
@@ -371,7 +362,6 @@ def run_job(
     timeout: int,
     capture_dir: Path | None,
     progress: Progress,
-    on_success: Callable[[Runnable], None] | None = None,
 ) -> str | None:
     """Returns the job id when it fails, None when it succeeds."""
     print(f"{job.id}: starting", flush=True)
@@ -405,8 +395,6 @@ def run_job(
             file=sys.stderr,
         )
         return job.id
-    if on_success is not None:
-        on_success(job)
     print(f"{progress.tick()} {job.id} done", flush=True)
     return None
 
@@ -415,22 +403,15 @@ def run_jobs(
     jobs: Sequence[Runnable],
     timeout: int,
     workers: int = 1,
-    on_success: Callable[[Runnable], None] | None = None,
 ) -> list[str]:
     progress = Progress(len(jobs))
     if workers == 1:
-        return [
-            r
-            for job in jobs
-            if (r := run_job(job, timeout, None, progress, on_success)) is not None
-        ]
+        return [r for job in jobs if (r := run_job(job, timeout, None, progress)) is not None]
 
     capture_dir = WORK_DIR / "logs"
     with ThreadPoolExecutor(max_workers=workers) as pool:
         try:
-            results = list(
-                pool.map(lambda job: run_job(job, timeout, capture_dir, progress, on_success), jobs)
-            )
+            results = list(pool.map(lambda job: run_job(job, timeout, capture_dir, progress), jobs))
         except KeyboardInterrupt:
             # Ctrl+C already reached the running jobs; the queued ones must not start.
             pool.shutdown(wait=False, cancel_futures=True)
@@ -493,8 +474,7 @@ def main() -> int:
             schedule, args.group, args.frequency, date.today(), extra, args.workers
         )
         if args.due:
-            state, now = load_state(), datetime.now(UTC)
-            jobs = [job for job in jobs if is_due(job, state, now)]
+            jobs = due_jobs(jobs, datetime.now(UTC))
     except ScheduleError as error:
         print(f"sweep: {error}", file=sys.stderr)
         return 2
@@ -526,11 +506,10 @@ def main() -> int:
         print("sweep: another sweep holds the lock, refusing to overlap", file=sys.stderr)
         return 3
 
-    run_state = RunState()
     failures: list[str] = []
     for _, group_jobs in groupby(jobs, key=lambda job: job.group):
         batch = list(group_jobs)
-        failures += run_jobs(batch, args.timeout, batch[0].workers, run_state.record_success)
+        failures += run_jobs(batch, args.timeout, batch[0].workers)
     if failures:
         print(f"sweep: {len(failures)}/{len(jobs)} failed: {', '.join(failures)}", file=sys.stderr)
         return 1

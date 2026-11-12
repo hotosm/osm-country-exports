@@ -81,8 +81,8 @@ categories:
       select:
         - id
         - names.primary AS name
-        - categories.primary AS category
-        - confidence
+        - taxonomy.primary AS category
+        - round(confidence, 2) AS confidence
         - phones[1] AS phone
         - websites[1] AS website
         - addresses[1].freeform AS address
@@ -90,10 +90,6 @@ categories:
         - sources[1].dataset AS source
       where:
         - >-
-          categories.primary IN ('hospital','emergency_room','urgent_care_clinic','urgent_care_center',
-          'ambulance_and_ems_services','fire_department','fire_protection_service','fire_station',
-          'police_department','medical_center','medical_clinic','clinic','doctor',
-          'health_department','pharmacy','drugstore','community_health_centre',
-          'counseling_and_mental_health')
+          list_has_any(taxonomy.hierarchy, ['hospital','emergency_or_urgent_care_facility','fire_station','fire_protection_service','police_station','doctors_office','pharmacy_and_drug_store','health_department','behavioral_or_mental_health_clinic','primary_care_or_general_clinic']) OR taxonomy.primary IN ('health_care','outpatient_care_facility')
     osm:
       enabled: false

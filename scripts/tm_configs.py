@@ -19,7 +19,11 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import cast
 
+from oex.config.loader import load_config
+from oex.config.schema import OsmSourceConfig
+from oex.osm.runner import refresh_planet_pbf, refreshes_planet
 from omegaconf import OmegaConf
 from upath import UPath
 
@@ -28,7 +32,7 @@ from tasking_manager import TM_API, TaskingManagerError, fetch_json
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = REPO_ROOT / "configs" / "_tm-template.yaml"
 MAX_INTERVAL_HOURS = 24
-PBF_ENV = "TM_PBF"
+SANDBOX_PBF_ENV = "TM_SANDBOX_PBF"
 # TM mapping_types are 1-based indexes into this order.
 MAPPING_TYPES = ("Roads", "Buildings", "Waterways", "Landuse")
 DATE_PREFIX = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -89,7 +93,6 @@ def category_names(mapping_types: list | None) -> list[str]:
 def build_config(
     template,
     feature: dict,
-    sandbox: bool,
     pbf_path: Path | None = None,
     all_categories: bool = False,
 ):
@@ -111,8 +114,8 @@ def build_config(
     cfg.output.s3.folder = f"hotosm_project_{project_id}"
     if pbf_path is not None:
         cfg.source.osm.pbf_path = str(pbf_path)
-    elif sandbox:
-        cfg.source.osm.pbf_path = f"${{oc.env:{PBF_ENV}}}"
+        # oex would otherwise date this file against the published planet and download over it.
+        cfg.source.osm.auto_download_planet = False
     return cfg
 
 
@@ -198,35 +201,45 @@ def ensure_local_pbf(source: str, cache_dir: Path) -> Path:
     return local
 
 
-def cut_project_extracts(
-    features: list[dict], sandbox: bool, pbf_dir: Path | None
-) -> dict[str, Path]:
-    """Cut every project's PBF in one pass, and report which are usable."""
-    source = os.environ.get(PBF_ENV)
-    if not source:
-        raise TaskingManagerError(f"--extract needs {PBF_ENV} set to the source PBF")
+def extract_source(template_path: Path, sandbox: bool) -> str:
+    """Sandbox projects are mapped in their own database, exported to the location in the
+    environment; production ones come from the template's planet, refreshed when outdated."""
+    if sandbox:
+        location = os.environ.get(SANDBOX_PBF_ENV)
+        if not location:
+            raise TaskingManagerError(f"sandbox extracts need {SANDBOX_PBF_ENV} set")
+        return location
+    osm = cast(OsmSourceConfig, load_config(template_path).source["osm"])
+    if not osm.pbf_path:
+        raise TaskingManagerError(f"{template_path}: source.osm.pbf_path is not set")
+    if osm.engine.lower() == "planet" and refreshes_planet(osm):
+        refresh_planet_pbf(osm, Path(osm.pbf_path))
+    return osm.pbf_path
 
-    target = pbf_dir or Path(os.environ.get("OEX_DATA_DIR", REPO_ROOT)) / "data" / (
-        "tm_sandbox" if sandbox else "tm"
-    )
+
+def cut_project_extracts(
+    features: list[dict], source: str, target: Path
+) -> tuple[dict[str, Path], Path]:
+    """Cut every project's PBF in one pass. Returns the usable extracts, and the local source
+    for a project osmium wrote nothing for."""
     source_pbf = ensure_local_pbf(resolve_source_pbf(source), target)
     if not source_pbf.is_file():
-        raise TaskingManagerError(f"{PBF_ENV}={source_pbf} is not a file")
+        raise TaskingManagerError(f"source PBF {source_pbf} is not a file")
     config, outputs = write_osmium_config(features, target)
     run_osmium_extract(source_pbf, config)
 
     usable = {}
     for project_id, path in outputs.items():
         if not path.is_file():
-            print(f"warn project {project_id}: osmium wrote no extract, using {PBF_ENV} whole")
+            print(f"warn project {project_id}: osmium wrote no extract, using {source_pbf} whole")
             continue
         if node_count(path) == 0:
             print(
-                f"warn project {project_id}: extract is empty, so {PBF_ENV} does not cover it; "
+                f"warn project {project_id}: extract is empty, so {source_pbf} does not cover it; "
                 "the export would publish nothing"
             )
         usable[project_id] = path
-    return usable
+    return usable, source_pbf
 
 
 def node_count(pbf: Path) -> int:
@@ -315,7 +328,15 @@ def main() -> int:
     if not out_dir.is_dir():
         print(f"tm: {out_dir} is not a directory", file=sys.stderr)
         return 2
+    if args.sandbox and not args.extract and not args.dry_run:
+        print(
+            f"tm: --sandbox needs --extract, since {SANDBOX_PBF_ENV} names a folder of dated "
+            "exports rather than one file",
+            file=sys.stderr,
+        )
+        return 2
 
+    template = OmegaConf.create(args.template.read_text(encoding="utf-8"))
     try:
         if args.project:
             features = [fetch_project(pid, args.timeout) for pid in args.project]
@@ -332,21 +353,25 @@ def main() -> int:
                 )
 
         outputs: dict[str, Path] = {}
+        source_pbf = None
         if args.extract and kept and not args.dry_run:
-            outputs = cut_project_extracts(kept, args.sandbox, args.pbf_dir)
+            group = "tm_sandbox" if args.sandbox else "tm"
+            pbf_dir = (
+                args.pbf_dir or Path(os.environ.get("OEX_DATA_DIR", REPO_ROOT)) / "data" / group
+            )
+            source = extract_source(args.template, args.sandbox)
+            outputs, source_pbf = cut_project_extracts(kept, source, pbf_dir)
     except TaskingManagerError as error:
         print(f"tm: {error}", file=sys.stderr)
         return 2
 
-    template = OmegaConf.create(args.template.read_text(encoding="utf-8"))
     configs = {}
     for feature in kept:
         project_id = str(feature["properties"]["project_id"])
         cfg = build_config(
             template,
             feature,
-            args.sandbox,
-            outputs.get(project_id),
+            outputs.get(project_id, source_pbf),
             args.template != TEMPLATE,
         )
         if cfg is None:

@@ -8,7 +8,7 @@ Every country has the same twelve layers. Each is one HDX dataset, named
 | Layer | HDX title | Main OpenStreetMap tags |
 | --- | --- | --- |
 | `buildings` | Buildings | `building` |
-| `roads` | Roads | `highway` |
+| `roads` | Roads | `highway`, on lines and areas only |
 | `waterways` | Waterways | `waterway`, `water`, `natural` |
 | `railways` | Railways | `railway` |
 | `education_facilities` | Education Facilities | `amenity`, `building` |
@@ -16,7 +16,7 @@ Every country has the same twelve layers. Each is one HDX dataset, named
 | `populated_places` | Populated Places | `place`, `landuse` |
 | `financial_services` | Financial Services | `amenity` |
 | `airports` | Airports | `aeroway`, `building`, `emergency` |
-| `sea_ports` | Sea Ports | `industrial=port`, `harbour`, `port` and related tags |
+| `sea_ports` | Ports and Ferry Terminals | `industrial=port`, `harbour`, `port`, `amenity=ferry_terminal` and related tags |
 | `points_of_interest` | Points of Interest | `amenity`, `shop`, `tourism`, `man_made` and related tags |
 | `cultural_places` | Cultural Places | `tourism`, `amenity`, `historic`, `heritage` and related tags |
 
@@ -51,7 +51,7 @@ Every layer has these columns, alongside the OpenStreetMap tags it selects:
 | `name` | The `name` tag. |
 | `name_en`, `name_<local language>` | Names in English and the country's own languages, where mapped. |
 | `name_latin` | A name in Latin script: `name_en` where present, otherwise `name` transliterated. |
-| `adm0_pcode` to `adm4_pcode`, `adm0_name` to `adm4_name` | The administrative areas the feature falls in, from the [fieldmaps.io](https://fieldmaps.io/) humanitarian boundaries. Empty for levels a country does not have. |
+| `adm0_pcode` to `adm4_pcode`, `adm0_name` to `adm4_name` | The administrative areas the feature falls in, from the [fieldmaps.io](https://fieldmaps.io/) humanitarian boundaries. A level the country has no coded boundaries for is left out. |
 | `bbox` | The bounding box of the geometry (`xmin`, `ymin`, `xmax`, `ymax`), used to [filter by area](../use/duckdb.md#cut-out-one-area). GeoParquet only. |
 | `geom` | The geometry, in longitude and latitude (EPSG:4326). |
 
