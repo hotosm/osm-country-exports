@@ -5,6 +5,7 @@ from typing import cast
 import pytest
 from oex.config.loader import load_config
 from oex.config.schema import OsmSourceConfig
+from oex.naming import slugify
 from omegaconf import OmegaConf
 from upath import UPath
 
@@ -14,6 +15,7 @@ TEMPLATE_PATH = tm_configs.TEMPLATE
 TEMPLATE = OmegaConf.create(TEMPLATE_PATH.read_text(encoding="utf-8"))
 SEAGRASS_PATH = tm_configs.REPO_ROOT / "configs" / "seagrass_extract.yaml"
 GEOM = {"type": "Polygon", "coordinates": [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]}
+SEAGRASS = {"name": "Seagrass", "tags": ["seamark:type=seagrass"]}
 
 
 @pytest.fixture
@@ -25,15 +27,21 @@ def memory_exports():
     return root
 
 
-def feature(project_id, mapping_types, geom=None):
+def feature(project_id, mapping_types, geom=None, custom=None):
     return {
         "geometry": geom or GEOM,
-        "properties": {"project_id": project_id, "mapping_types": mapping_types},
+        "properties": {
+            "project_id": project_id,
+            "mapping_types": mapping_types,
+            "custom_mapping_types": custom,
+        },
     }
 
 
-def build(project_id=4242, mapping_types=(2,)):
-    return tm_configs.build_config(TEMPLATE, feature(project_id, list(mapping_types)))
+def build(project_id=4242, mapping_types=(2,), custom=None):
+    return tm_configs.build_config(
+        TEMPLATE, feature(project_id, list(mapping_types), custom=custom)
+    )
 
 
 def test_mapping_type_ints_are_one_based_indexes():
@@ -92,6 +100,109 @@ def test_categories_are_trimmed_to_the_project_mapping_types():
 def test_a_project_with_no_supported_mapping_type_is_not_generated():
     assert build(mapping_types=()) is None
     assert build(mapping_types=(99,)) is None
+
+
+def test_a_key_alone_matches_any_value():
+    [category] = tm_configs.custom_categories(
+        [{"name": "Water", "tags": ["waterway=*", "amenity=drinking_water", "amenity=*"]}]
+    )
+    assert category["osm"]["filter"] == {"waterway": True, "amenity": True}
+
+
+def test_custom_columns_never_repeat_and_id_stays_the_feature_id():
+    attributes = ["id", "name", "addr:street", "addr_street"]
+    [category] = tm_configs.custom_categories(
+        [{"name": "Wells", "tags": ["man_made=water_well"], "attributes": attributes}]
+    )
+    assert category["osm"]["select"] == [
+        "feature_id AS id",
+        "tags['name'] AS name",
+        "tags['man_made'] AS man_made",
+        "tags['addr:street'] AS addr_street",
+        "tags['source'] AS source",
+    ]
+
+
+def test_custom_columns_run_in_duckdb():
+    import duckdb
+    from oex.sql import build_select_clause
+
+    [category] = tm_configs.custom_categories(
+        [{"name": "Tracks", "tags": ["4wd_only=yes", ":=x", "geom=x", "natural=*"]}]
+    )
+    con = duckdb.connect()
+    con.execute("CREATE TABLE src AS SELECT 1 AS feature_id, MAP {'k': 'v'} AS tags, 1 AS geometry")
+    con.execute(
+        f"CREATE TABLE t AS SELECT {build_select_clause(category['osm']['select'])} FROM src"
+    )
+    columns = [row[0] for row in con.execute("DESCRIBE t").fetchall()]
+    assert columns == ["id", "name", "4wd_only", "natural", "source", "geom"]
+
+
+@pytest.mark.parametrize(
+    "custom",
+    [
+        {"name": "Buildings", "tags": ["building=yes"]},
+        {"name": "", "tags": ["building=yes"]},
+        {"name": "${oc.env:AWS_SECRET_ACCESS_KEY}", "tags": ["building=yes"]},
+        {"name": "Wells", "tags": []},
+        {"name": "Wells", "tags": ["man_made"]},
+        {"name": "Wells", "tags": ["man_made="]},
+        {"name": "Wells", "tags": ["man'made=water_well"]},
+        {"name": "Wells", "tags": ["man_made=${oc.env:AWS_SECRET_ACCESS_KEY}"]},
+        {"name": "Wells", "tags": ["man_made=water_well"], "attributes": ["x') AS y --"]},
+        {"name": "Wells", "tags": "man_made=water_well"},
+        {"name": "Wells", "tags": ["man_made=water_well"], "attributes": "name"},
+        "Wells",
+        None,
+    ],
+)
+def test_a_custom_type_that_breaks_the_tm_validation_is_skipped(custom):
+    assert tm_configs.custom_categories([custom]) == []
+
+
+@pytest.mark.parametrize("custom_types", ['[{"name": "Wells"}]', {"name": "Wells"}, 5])
+def test_custom_types_that_are_not_a_list_are_ignored(custom_types):
+    assert tm_configs.custom_categories(custom_types) == []
+
+
+def test_two_custom_types_cannot_share_a_folder():
+    customs = [SEAGRASS, {**SEAGRASS, "name": "seagrass"}]
+    assert [c["name"] for c in tm_configs.custom_categories(customs)] == ["Seagrass"]
+
+
+def test_custom_types_are_added_to_the_mapping_type_categories():
+    cfg = build(mapping_types=(2,), custom=[SEAGRASS])
+    assert [c.name for c in cfg.categories] == ["Buildings", "Seagrass"]
+
+
+def test_a_project_with_only_custom_types_is_generated(tmp_path, monkeypatch):
+    """Mapping type 5 is OTHER, which no template category covers."""
+    monkeypatch.setattr("sys.argv", ["tm_configs", "--out", str(tmp_path)])
+    monkeypatch.setattr(
+        tm_configs, "fetch_active_projects", lambda *_: [feature(1, [5], custom=[SEAGRASS])]
+    )
+    assert tm_configs.main() == 0
+    assert [c.name for c in OmegaConf.load(tmp_path / "1.yaml").categories] == ["Seagrass"]
+
+
+def test_a_caller_supplied_template_ignores_custom_types():
+    cfg = tm_configs.build_config(TEMPLATE, feature(1, [2], custom=[SEAGRASS]), None, True)
+    assert "Seagrass" not in [c.name for c in cfg.categories]
+
+
+def test_a_custom_type_lands_in_the_folder_the_tm_frontend_requests():
+    """The frontend lowercases the name and joins its words with `_`, as oex does."""
+    cfg = build(custom=[{"name": "Water points", "tags": ["amenity=drinking_water"]}])
+    assert slugify(cfg.categories[-1].name) == "water_points"
+
+
+def test_a_custom_type_loads_as_an_oex_category(tmp_path, monkeypatch):
+    monkeypatch.setenv("OEX_S3_BUCKET", "bucket")
+    tm_configs.sync(tmp_path, {"1.yaml": build(1, custom=[SEAGRASS])}, dry_run=False)
+    cfg = load_config(tmp_path / "1.yaml")
+    assert [c.name for c in cfg.categories] == ["Buildings", "Seagrass"]
+    assert cfg.categories[-1].osm.filter == {"seamark:type": ["seagrass"]}
 
 
 def pbf_path(cfg) -> str:
@@ -242,7 +353,8 @@ def test_the_osmium_config_holds_one_extract_per_project(tmp_path):
 
 def test_each_extract_gets_its_own_polygon_file(tmp_path):
     tm_configs.write_osmium_config([feature(1, [2])], tmp_path)
-    assert json.loads((tmp_path / "1.geojson").read_text(encoding="utf-8")) == GEOM
+    written = json.loads((tmp_path / "1.geojson").read_text(encoding="utf-8"))
+    assert written == {"type": "Feature", "properties": {}, "geometry": GEOM}
 
 
 def test_a_plain_location_is_used_as_is():

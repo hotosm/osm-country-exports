@@ -1,10 +1,11 @@
 """Read JSON from the HOT Tasking Manager API."""
 
 import json
+import os
 import urllib.error
 import urllib.request
 
-TM_API = "https://tasking-manager-production-api.hotosm.org/api/v2"
+TM_API = os.environ.get("TM_API") or "https://tasking-manager-production-api.hotosm.org/api/v2"
 
 
 class TaskingManagerError(Exception):

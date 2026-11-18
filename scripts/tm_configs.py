@@ -24,6 +24,7 @@ from typing import cast
 
 from oex.config.loader import load_config
 from oex.config.schema import OsmSourceConfig
+from oex.naming import slugify
 from oex.osm.runner import refresh_planet_pbf, refreshes_planet
 from omegaconf import OmegaConf
 from upath import UPath
@@ -40,6 +41,7 @@ DEFAULT_EXTRACT_BATCH = 6
 # TM mapping_types are 1-based indexes into this order.
 MAPPING_TYPES = ("Roads", "Buildings", "Waterways", "Landuse")
 DATE_PREFIX = re.compile(r"\d{4}-\d{2}-\d{2}")
+OSM_KEY = re.compile(r"[A-Za-z0-9_:.-]+")
 
 
 def _display(path: Path) -> str:
@@ -71,6 +73,7 @@ def fetch_project(project_id: str, timeout: int) -> dict:
         "properties": {
             "project_id": payload["projectId"],
             "mapping_types": payload.get("mappingTypes"),
+            "custom_mapping_types": payload.get("customMappingTypes"),
         },
     }
 
@@ -94,6 +97,62 @@ def category_names(mapping_types: list | None) -> list[str]:
     return names
 
 
+def custom_categories(custom_types: object) -> list[dict]:
+    """TM custom mapping types to categories, each publishing to its own folder.
+
+    Keys become SQL in `select`, and names and values pass through OmegaConf, so a type
+    the TM would have rejected is skipped rather than trusted."""
+    categories, taken = [], {slugify(name) for name in MAPPING_TYPES}
+    for custom in custom_types if isinstance(custom_types, list) else []:
+        custom = custom if isinstance(custom, dict) else {}
+        name = str(custom.get("name") or "")
+        slug = slugify(name)
+        tag_filter = custom_filter(custom.get("tags"))
+        attributes = custom.get("attributes") or []
+        if (
+            not slug
+            or slug in taken
+            or "$" in name
+            or not tag_filter
+            or not isinstance(attributes, list)
+            or not all(isinstance(key, str) and OSM_KEY.fullmatch(key) for key in attributes)
+        ):
+            print(f"skip custom mapping type {name!r}: invalid name, tags or attributes")
+            continue
+        taken.add(slug)
+        select = custom_select([*tag_filter, *attributes])
+        categories.append(
+            {"name": name, "osm": {"enabled": True, "filter": tag_filter, "select": select}}
+        )
+    return categories
+
+
+def custom_filter(tags: object) -> dict:
+    """`key=value` tags as an oex filter matching any of them, `key=*` for any value.
+    Empty when a tag is invalid."""
+    if not isinstance(tags, list):
+        return {}
+    values: dict[str, list[str]] = {}
+    for tag in tags:
+        key, _, value = str(tag).partition("=")
+        if not OSM_KEY.fullmatch(key) or not value or "$" in value:
+            return {}
+        values.setdefault(key, []).append(value)
+    return {key: True if "*" in found else found for key, found in values.items()}
+
+
+def custom_select(keys: list[str]) -> list[str]:
+    """One column per tag key between `id`, `name` and `source`, named as oex names folders."""
+    columns = {"id": "feature_id"}
+    for key in ("name", *keys, "source"):
+        alias = slugify(key)
+        # oex appends `geometry AS geom`, and DuckDB needs a leading digit quoted
+        if alias and alias != "geom":
+            alias = f'"{alias}"' if alias[0].isdigit() else alias
+            columns.setdefault(alias, f"tags['{key}']")
+    return [f"{expr} AS {alias}" for alias, expr in columns.items()]
+
+
 def build_config(
     template,
     feature: dict,
@@ -103,14 +162,13 @@ def build_config(
     """Fill the template in for one project. Returns None when nothing maps.
 
     A caller-supplied template declares the categories it wants, so the project's
-    mapping types only select from the default one."""
+    mapping types and custom mapping types only apply to the default one."""
     project_id = feature["properties"]["project_id"]
     cfg = OmegaConf.create(OmegaConf.to_yaml(template, resolve=False))
     if not all_categories:
         wanted = category_names(feature["properties"].get("mapping_types"))
-        if not wanted:
-            return None
-        cfg.categories = [c for c in cfg.categories if c.name in wanted]
+        custom = custom_categories(feature["properties"].get("custom_mapping_types"))
+        cfg.categories = [c for c in cfg.categories if c.name in wanted] + custom
     if not cfg.categories:
         return None
     cfg.dataset_name = f"Tasking Manager Project {project_id}"
@@ -132,7 +190,8 @@ def write_osmium_config(features: list[dict], pbf_dir: Path) -> tuple[Path, dict
     for feature in features:
         project_id = str(feature["properties"]["project_id"])
         polygon = pbf_dir / f"{project_id}.geojson"
-        polygon.write_text(json.dumps(feature["geometry"]), encoding="utf-8")
+        polygon_feature = {"type": "Feature", "properties": {}, "geometry": feature["geometry"]}
+        polygon.write_text(json.dumps(polygon_feature), encoding="utf-8")
         output = pbf_dir / f"{project_id}.osm.pbf"
         extracts.append(
             {
@@ -363,12 +422,11 @@ def main() -> int:
 
         kept = []
         for feature in features:
-            if category_names(feature["properties"].get("mapping_types")):
+            props = feature["properties"]
+            if category_names(props.get("mapping_types")) or props.get("custom_mapping_types"):
                 kept.append(feature)
             else:
-                print(
-                    f"skip project {feature['properties']['project_id']}: no supported mapping type"
-                )
+                print(f"skip project {props['project_id']}: no supported mapping type")
 
         outputs: dict[str, Path] = {}
         source_pbf = None

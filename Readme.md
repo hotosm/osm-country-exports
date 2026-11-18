@@ -78,12 +78,15 @@ just tm-configs --dry-run
 `/projects/queries/active/?interval=24` (the API caps the interval at 24 hours,
 and `&sandbox=true` selects sandbox projects), and writes one config per project.
 Configs are kept until removed by hand, because the API reports only what changed in the
-interval.
+interval. Set `TM_API` to read a Tasking Manager other than production.
 
 A project has no country code, so its identity is the project id through
 `output.s3.folder`, which puts artifacts at
 `TM/hotosm_project_{id}/{category}/{geometry}/hotosm_project_{id}_{category}_{geometry}_{format}.zip`.
-Categories follow each project's mapping types.
+Categories follow each project's mapping types, and each custom mapping type a project
+defines becomes a category of its own: a feature carrying any of its `key=value`
+tags (`key=*` for any value) matches, and the columns are `name`, those keys, the listed
+attributes and `source`. A `--template` replaces both.
 
 `--extract` cuts each project's PBF with osmium, `TM_EXTRACT_BATCH` projects (default 6)
 per osmium pass, and points its config at that file. Sandbox configs need it, with the newest
